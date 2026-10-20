@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание 7г класса</title>
+    <!-- Подключаем Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Подключаем шрифт Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Подключаем иконки Phosphor -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Плавная анимация пульсации для активного урока */
+        @keyframes subtle-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.2); }
+            50% { box-shadow: 0 0 0 8px rgba(79, 70, 229, 0); }
+        }
+        .active-lesson-card {
+            animation: subtle-pulse 2.5s infinite;
+        }
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Шапка сайта -->
+    <header class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 text-white shadow-xl relative overflow-hidden">
+        <!-- Декоративные круги на фоне -->
+        <div class="absolute -top-24 -right-24 w-72 h-72 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-violet-400/20 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 relative z-10">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase mb-2 border border-white/20">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 -ml-4"></span>
+                        Школьный портал • 2 смена
+                    </div>
+                    <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight flex items-center gap-2">
+                        Расписание 7г класса <span class="text-red-400 drop-shadow">❤️</span>
+                    </h1>
+                </div>
+
+                <!-- Блок живых часов и даты -->
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3 text-left sm:text-right w-full sm:w-auto flex sm:flex-col justify-between items-center sm:items-end">
+                    <div id="live-clock" class="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight leading-none">
+                        00:00:00
+                    </div>
+                    <div id="live-date" class="text-xs sm:text-sm text-indigo-100 font-medium mt-0 sm:mt-1">
+                        Загрузка даты...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Виджет живого статуса (Таймер урока / перемены) -->
+            <div id="status-banner" class="mt-6 bg-white/10 backdrop-blur-md border border-white/25 rounded-2xl p-4 sm:p-5 transition-all duration-300">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-start sm:items-center gap-3.5">
+                        <div id="status-icon-box" class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                            ⏳
+                        </div>
+                        <div>
+                            <div id="status-badge" class="text-xs font-bold uppercase tracking-wider text-indigo-200 mb-0.5">
+                                Статус учебного дня
+                            </div>
+                            <div id="status-title" class="text-base sm:text-lg font-bold text-white leading-snug">
+                                Определение времени...
+                            </div>
+                            <div id="status-subtitle" class="text-xs sm:text-sm text-indigo-100 mt-0.5">
+                                Подождите секунду
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Таймер обратного отсчета -->
+                    <div id="countdown-box" class="hidden bg-slate-900/40 border border-white/15 rounded-xl px-4 py-2.5 text-center shrink-0">
+                        <div id="countdown-label" class="text-[11px] uppercase tracking-wider text-indigo-200 font-semibold">
+                            До конца урока
+                        </div>
+                        <div id="countdown-timer" class="text-xl sm:text-2xl font-mono font-extrabold text-amber-300 tracking-wider mt-0.5">
+                            00:00
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Полоса прогресса урока или перемены -->
+                <div id="progress-container" class="hidden mt-4">
+                    <div class="flex justify-between text-xs text-indigo-100 font-medium mb-1.5">
+                        <span id="progress-start-text">Начало</span>
+                        <span id="progress-percent-text">0%</span>
+                        <span id="progress-end-text">Конец</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-slate-900/40 rounded-full overflow-hidden p-0.5 border border-white/10">
+                        <div id="progress-bar" class="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Уведомление о выходном дне (показывается только в Сб и Вс) -->
+            <div id="weekend-notice" class="hidden mt-3 bg-amber-400/20 border border-amber-300/40 text-amber-100 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-medium flex items-center gap-2">
+                <i class="ph-fill ph-sun-horizon text-lg text-amber-300 shrink-0"></i>
+                <span>Сегодня выходной! Автоматически открыто расписание на <b>Понедельник</b>.</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-grow w-full">
+
+        <!-- Панель выбора дня недели (ТОЛЬКО 5 ДНЕЙ, без кнопки "Вся неделя") -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Выберите день недели</span>
+                <span id="selected-day-indicator" class="text-xs font-medium text-indigo-600"></span>
+            </div>
+            <div class="grid grid-cols-5 gap-2 sm:gap-3" id="day-tabs">
+                <!-- Кнопки генерируются и обновляются через JS -->
+                <button onclick="selectDay(1)" id="tab-1" class="day-tab group relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl font-bold text-sm transition-all border">
+                    <span class="sm:hidden text-base">Пн</span>
+                    <span class="hidden sm:inline text-sm">Понедельник</span>
+                    <span id="today-dot-1" class="hidden mt-1 text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-600">Сегодня</span>
+                </button>
+                <button onclick="selectDay(2)" id="tab-2" class="day-tab group relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl font-bold text-sm transition-all border">
+                    <span class="sm:hidden text-base">Вт</span>
+                    <span class="hidden sm:inline text-sm">Вторник</span>
+                    <span id="today-dot-2" class="hidden mt-1 text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-600">Сегодня</span>
+                </button>
+                <button onclick="selectDay(3)" id="tab-3" class="day-tab group relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl font-bold text-sm transition-all border">
+                    <span class="sm:hidden text-base">Ср</span>
+                    <span class="hidden sm:inline text-sm">Среда</span>
+                    <span id="today-dot-3" class="hidden mt-1 text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-600">Сегодня</span>
+                </button>
+                <button onclick="selectDay(4)" id="tab-4" class="day-tab group relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl font-bold text-sm transition-all border">
+                    <span class="sm:hidden text-base">Чт</span>
+                    <span class="hidden sm:inline text-sm">Четверг</span>
+                    <span id="today-dot-4" class="hidden mt-1 text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-600">Сегодня</span>
+                </button>
+                <button onclick="selectDay(5)" id="tab-5" class="day-tab group relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl font-bold text-sm transition-all border">
+                    <span class="sm:hidden text-base">Пт</span>
+                    <span class="hidden sm:inline text-sm">Пятница</span>
+                    <span id="today-dot-5" class="hidden mt-1 text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-600">Сегодня</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Заголовок выбранного дня со сводкой -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm mb-4 flex flex-col gap-3">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold">
+                        <i class="ph-duotone ph-calendar-check"></i>
+                    </div>
+                    <div>
+                        <h2 id="day-title" class="text-lg sm:text-xl font-extrabold text-slate-800">Понедельник</h2>
+                        <p id="day-Meta" class="text-xs sm:text-sm text-slate-500">Загрузка параметров дня...</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="day-hours-badge" class="bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                        <i class="ph ph-clock text-indigo-600"></i> 12:20 – 17:15
+                    </span>
+                    <span id="day-count-badge" class="bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-xl">
+                        6 уроков
+                    </span>
+                </div>
+            </div>
+
+            <!-- Специальная настройка для Четверга (показывается только в Четверг) -->
+            <div id="thursday-options" class="hidden pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div class="flex items-center gap-2 text-indigo-900 font-semibold">
+                    <i class="ph-fill ph-info text-indigo-600 text-base"></i>
+                    <span>В четверг основные уроки начинаются в <b>13:10</b>:</span>
+                </div>
+                <div class="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200/70 self-start sm:self-auto">
+                    <button onclick="setThursdayMode('start1310')" id="thu-mode-1310" class="px-2.5 py-1 rounded-lg font-bold transition-all text-xs">
+                        С 13:10 (Англ. яз.)
+                    </button>
+                    <button onclick="setThursdayMode('withPracticum')" id="thu-mode-prac" class="px-2.5 py-1 rounded-lg font-bold transition-all text-xs">
+                        + Практикум в 12:20
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Список уроков на выбранный день -->
+        <div id="lessons-list" class="space-y-3">
+            <!-- Карточки уроков рендерятся через JS -->
+        </div>
+
+        <!-- Панель тестирования таймера (Демо-режим для проверки работы во время уроков/перемен) -->
+        <div class="mt-10 bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+            <button onclick="toggleDemoPanel()" class="w-full px-5 py-3.5 text-left flex items-center justify-between bg-slate-50/70 hover:bg-slate-100/80 transition-colors">
+                <div class="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-slate-600">
+                    <i class="ph-duotone ph-sliders-horizontal text-indigo-600 text-lg"></i>
+                    <span>Режим проверки таймера (Симулятор времени)</span>
+                    <span id="demo-active-pill" class="hidden bg-amber-100 text-amber-800 text-[11px] px-2 py-0.5 rounded-full font-extrabold">ВКЛЮЧЕН</span>
+                </div>
+                <i id="demo-chevron" class="ph ph-caret-down text-slate-400 transition-transform"></i>
+            </button>
+            <div id="demo-panel" class="hidden p-5 border-t border-slate-100 text-sm space-y-4">
+                <p class="text-xs text-slate-500">
+                    Хотите посмотреть, как сайт показывает отсчёт до конца урока или перемены прямо сейчас? Включите тестовое время:
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">День недели:</label>
+                        <select id="sim-day" onchange="applySimulation()" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium bg-slate-50 focus:outline-none focus:border-indigo-500">
+                            <option value="1">Понедельник</option>
+                            <option value="2">Вторник</option>
+                            <option value="3">Среда</option>
+                            <option value="4">Четверг</option>
+                            <option value="5">Пятница</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Быстрый сценарий:</label>
+                        <select id="sim-preset" onchange="applyPreset()" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium bg-slate-50 focus:outline-none focus:border-indigo-500">
+                            <option value="real">Реальное время (Авто)</option>
+                            <option value="before">До уроков (11:50)</option>
+                            <option value="lesson6">Идёт 6 урок (12:35)</option>
+                            <option value="break7">Перемена перед 7 уроком (13:05)</option>
+                            <option value="lesson7">Идёт 7 урок (13:25)</option>
+                            <option value="lesson9">Идёт 9 урок (15:10)</option>
+                            <option value="after">После уроков (18:30)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="resetSimulation()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 px-4 rounded-xl text-xs transition-colors">
+                            Вернуть реальное время
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Подвал -->
+    <footer class="bg-white border-t border-slate-200/80 py-5 px-4 text-center text-xs text-slate-400 mt-auto">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p class="font-medium text-slate-500">Сделано специально для 7г класса ❤️</p>
+            <p>Обычно с 12:20 (6 ур.) • Вторник и Четверг с 13:10 (7 ур.)</p>
+        </div>
+    </footer>
+
+    <script>
+        // ==========================================
+        // 1. ТОЧНЫЕ ДАННЫЕ РАСПИСАНИЯ ЗВОНКОВ И УРОКОВ (С учётом старта в 12:20 и Чт в 13:10)
+        // ==========================================
+        const BELL_SCHEDULE = {
+            6:  { start: "12:20", end: "13:00" },
+            7:  { start: "13:10", end: "13:50" },
+            8:  { start: "14:00", end: "14:40" },
+            9:  { start: "14:50", end: "15:30" },
+            10: { start: "15:45", end: "16:25" },
+            11: { start: "16:35", end: "17:15" },
+            12: { start: "17:25", end: "18:05" }
+        };
+
+        const DAY_NAMES = {
+            1: "Понедельник",
+            2: "Вторник",
+            3: "Среда",
+            4: "Четверг",
+            5: "Пятница",
+            6: "Суббота",
+            0: "Воскресенье"
+        };
+
+        // Режим четверга: по умолчанию 'start1310' (уроки начинаются в 13:10, практикум не считается обязательным стартом таймера)
+        let thursdayMode = localStorage.getItem('schedule_7g_thu_mode') || 'start1310';
+
+        // Базовое расписание по дням (1 - Пн ... 5 - Пт)
+        const SCHEDULE_DATA = {
+            1: [ // Понедельник (с 12:20)
+                { num: 6,  subject: "Физика", teacher: "Сабурова Н.С.", room: "319", icon: "ph-atom", color: "blue" },
+                { num: 7,  subject: "Разговоры о важном", teacher: "Павлова И.А.", room: "307", icon: "ph-chats-circle", color: "amber" },
+                { num: 8,  subject: "Английский язык", teacher: "Гамалей А.К. / Машукова О.А.", room: "312 / 213", icon: "ph-translate", color: "rose" },
+                { num: 9,  subject: "Технология", teacher: "Игнатова Е.В. / Корниенко Г.Л.", room: "324 / 122М", icon: "ph-wrench", color: "emerald" },
+                { num: 10, subject: "Технология", teacher: "Игнатова Е.В. / Корниенко Г.Л.", room: "324 / 122М", icon: "ph-wrench", color: "emerald" },
+                { num: 11, subject: "География", teacher: "Калюжная Е.А.", room: "310", icon: "ph-globe-hemisphere-east", color: "teal" },
+                { num: 12, empty: true }
+            ],
+            2: [ // Вторник (с 13:10)
+                { num: 6,  empty: true },
+                { num: 7,  subject: "История", teacher: "Бабенко П.В.", room: "218", icon: "ph-scroll", color: "amber" },
+                { num: 8,  subject: "Математический практикум", teacher: "Жилина Т.А.", room: "205", icon: "ph-function", color: "indigo" },
+                { num: 9,  subject: "Вероятность и статистика", teacher: "Жилина Т.А.", room: "205", icon: "ph-chart-bar", color: "violet" },
+                { num: 10, subject: "Английский язык", teacher: "Гамалей А.К. / Машукова О.А.", room: "312 / 308А", icon: "ph-translate", color: "rose" },
+                { num: 11, subject: "География", teacher: "Калюжная Е.А.", room: "310", icon: "ph-globe-hemisphere-east", color: "teal" },
+                { num: 12, subject: "Биология", teacher: "Доля Н.В.", room: "219", icon: "ph-plant", color: "emerald" }
+            ],
+            3: [ // Среда (с 12:20)
+                { num: 6,  subject: "Физическая культура", teacher: "Бондаренко-Добряк С.А.", room: "Зал 2", icon: "ph-basketball", color: "orange" },
+                { num: 7,  subject: "Физика", teacher: "Сабурова Н.С.", room: "220", icon: "ph-atom", color: "blue" },
+                { num: 8,  subject: "История", teacher: "Бабенко П.В.", room: "215", icon: "ph-scroll", color: "amber" },
+                { num: 9,  subject: "Геометрия", teacher: "Жилина Т.А.", room: "205", icon: "ph-shapes", color: "indigo" },
+                { num: 10, subject: "Алгебра", teacher: "Жилина Т.А.", room: "205", icon: "ph-calculator", color: "violet" },
+                { num: 11, subject: "Русский язык", teacher: "Павлова И.А.", room: "307", icon: "ph-book-bookmark", color: "rose" },
+                { num: 12, subject: "Литература", teacher: "Павлова И.А.", room: "307", icon: "ph-books", color: "pink" }
+            ],
+            4: [ // Четверг (По умолчанию уроки с 13:10, 6-й урок Практикум помечен как доп./по выбору)
+                { num: 6,  subject: "Практикум по русскому языку", teacher: "Павлова И.А.", room: "307", icon: "ph-pen-nib", color: "rose", optionalOnThu: true },
+                { num: 7,  subject: "Английский язык", teacher: "Гамалей А.К. / Машукова О.А.", room: "212 / 308А", icon: "ph-translate", color: "rose" },
+                { num: 8,  subject: "Литература", teacher: "Павлова И.А.", room: "307", icon: "ph-books", color: "pink" },
+                { num: 9,  subject: "Геометрия", teacher: "Жилина Т.А.", room: "205", icon: "ph-shapes", color: "indigo" },
+                { num: 10, subject: "Алгебра", teacher: "Жилина Т.А.", room: "205", icon: "ph-calculator", color: "violet" },
+                { num: 11, subject: "История", teacher: "Бабенко П.В.", room: "215", icon: "ph-scroll", color: "amber" },
+                { num: 12, subject: "Музыка", teacher: "Седых Н.П.", room: "111А", icon: "ph-music-notes", color: "sky" }
+            ],
+            5: [ // Пятница (с 12:20)
+                { num: 6,  subject: "Физическая культура", teacher: "Бондаренко-Добряк С.А.", room: "Зал 1", icon: "ph-basketball", color: "orange" },
+                { num: 7,  subject: "Информатика", teacher: "Гусаков С.Р. / Бочкова Л.С.", room: "213 / 212", icon: "ph-desktop", color: "cyan" },
+                { num: 8,  subject: "Русский язык", teacher: "Павлова И.А.", room: "307", icon: "ph-book-bookmark", color: "rose" },
+                { num: 9,  subject: "Алгебра", teacher: "Жилина Т.А.", room: "205", icon: "ph-calculator", color: "violet" },
+                { num: 10, subject: "Русский язык", teacher: "Павлова И.А.", room: "307", icon: "ph-book-bookmark", color: "rose" },
+                { num: 11, subject: "ИЗО", teacher: "Черная О.А.", room: "220", icon: "ph-palette", color: "emerald" },
+                { num: 12, subject: "Русский язык", teacher: "Павлова И.А.", room: "307", icon: "ph-book-bookmark", color: "rose" }
+            ]
+        };
+
+        // Возвращает список уроков дня с учётом того, что в Четверг уроки начинаются в 13:10
+        function getDayLessons(dayNum) {
+            const raw = SCHEDULE_DATA[dayNum] || [];
+            return raw.map(item => {
+                if (dayNum === 4 && item.optionalOnThu) {
+                    return {
+                        ...item,
+                        isSkippedMain: thursdayMode === 'start1310'
+                    };
+                }
+                return { ...item, isSkippedMain: false };
+            });
+        }
+
+        function setThursdayMode(mode) {
+            thursdayMode = mode;
+            try {
+                localStorage.setItem('schedule_7g_thu_mode', mode);
+            } catch (e) {}
+            lastRenderedStateKey = "";
+            renderLessonsForSelectedDay();
+            updateLiveTimer();
+        }
+
+        // Состояние приложения
+        let selectedDay = 1; // Выбранная вкладка (1..5)
+        let isSimulated = false;
+        let simDay = 1;
+        let simSecondsOffset = 0; // Смещение или фиксированное время в секундах от начала суток
+
+        // Вспомогательные функции времени
+        function timeToSeconds(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            return h * 3600 + m * 60;
+        }
+
+        function formatDuration(totalSeconds) {
+            if (totalSeconds < 0) totalSeconds = 0;
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = Math.floor(totalSeconds % 60);
+            const pad = (n) => String(n).padStart(2, '0');
+            if (h > 0) {
+                return `${pad(h)}:${pad(m)}:${pad(s)}`;
+            }
+            return `${pad(m)}:${pad(s)}`;
+        }
+
+        // Получение текущего времени (реального или демо)
+        function getNowState() {
+            const now = new Date();
+            if (!isSimulated) {
+                const dayOfWeek = now.getDay(); // 0 (Вс) .. 6 (Сб)
+                const currentSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+                return {
+                    dateObj: now,
+                    dayOfWeek,
+                    currentSeconds,
+                    timeString: now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                };
+            } else {
+                // В демо-режиме секунды тикают вперёд
+                simSecondsOffset += 1;
+                const h = Math.floor(simSecondsOffset / 3600) % 24;
+                const m = Math.floor((simSecondsOffset % 3600) / 60);
+                const s = Math.floor(simSecondsOffset % 60);
+                const pad = (n) => String(n).padStart(2, '0');
+                return {
+                    dateObj: now,
+                    dayOfWeek: simDay,
+                    currentSeconds: simSecondsOffset,
+                    timeString: `${pad(h)}:${pad(m)}:${pad(s)}`
+                };
+            }
+        }
+
+        // ==========================================
+        // 2. ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК И РЕНДЕР УРОКОВ
+        // ==========================================
+        function selectDay(dayNum) {
+            selectedDay = dayNum;
+            updateDayTabsUI();
+            renderLessonsForSelectedDay();
+        }
+
+        function updateDayTabsUI() {
+            const { dayOfWeek } = getNowState();
+
+            for (let d = 1; d <= 5; d++) {
+                const btn = document.getElementById(`tab-${d}`);
+                const dot = document.getElementById(`today-dot-${d}`);
+
+                // Показываем метку "Сегодня" на текущем буднем дне
+                if (d === dayOfWeek) {
+                    dot.classList.remove('hidden');
+                } else {
+                    dot.classList.add('hidden');
+                }
+
+                // Стили активной и неактивной вкладки
+                if (d === selectedDay) {
+                    btn.className = "day-tab group relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl font-bold text-sm transition-all bg-indigo-600 text-white shadow-md shadow-indigo-600/25 border-indigo-600 scale-[1.02]";
+                    if (d === dayOfWeek) {
+                        dot.className = "mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white";
+                    }
+                } else {
+                    btn.className = "day-tab group relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl font-bold text-sm transition-all bg-white text-slate-600 hover:bg-indigo-50/50 hover:text-indigo-600 border-slate-200/90 shadow-sm";
+                    if (d === dayOfWeek) {
+                        dot.className = "mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700";
+                    }
+                }
+            }
+
+            const indicator = document.getElementById('selected-day-indicator');
+            if (selectedDay === dayOfWeek) {
+                indicator.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-600 font-bold"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Открыт сегодняшний день</span>`;
+            } else {
+                indicator.innerHTML = `Просмотр: <b>${DAY_NAMES[selectedDay]}</b>`;
+            }
+        }
+
+        function renderLessonsForSelectedDay() {
+            const lessons = getDayLessons(selectedDay);
+            const activeLessons = lessons.filter(l => !l.empty && !l.isSkippedMain);
+            const firstLesson = activeLessons[0];
+            const lastLesson = activeLessons[activeLessons.length - 1];
+
+            // Показываем или скрываем переключатель четверга
+            const thuBox = document.getElementById('thursday-options');
+            if (selectedDay === 4) {
+                thuBox.classList.remove('hidden');
+                const btn1310 = document.getElementById('thu-mode-1310');
+                const btnPrac = document.getElementById('thu-mode-prac');
+                if (thursdayMode === 'start1310') {
+                    btn1310.className = "px-2.5 py-1 rounded-lg font-bold transition-all text-xs bg-indigo-600 text-white shadow-sm";
+                    btnPrac.className = "px-2.5 py-1 rounded-lg font-bold transition-all text-xs text-slate-600 hover:text-indigo-600";
+                } else {
+                    btnPrac.className = "px-2.5 py-1 rounded-lg font-bold transition-all text-xs bg-indigo-600 text-white shadow-sm";
+                    btn1310.className = "px-2.5 py-1 rounded-lg font-bold transition-all text-xs text-slate-600 hover:text-indigo-600";
+                }
+            } else {
+                thuBox.classList.add('hidden');
+            }
+
+            // Обновляем шапку дня
+            document.getElementById('day-title').innerText = DAY_NAMES[selectedDay];
+            if (selectedDay === 4 && thursdayMode === 'start1310') {
+                document.getElementById('day-Meta').innerText = "В четверг начало уроков в 13:10 (с 7-го урока)";
+            } else if (firstLesson.num === 7) {
+                document.getElementById('day-Meta').innerText = "Начало в 13:10 (ко 2-му уроку смены / 7-му уроку)";
+            } else {
+                document.getElementById('day-Meta').innerText = "Обычное начало уроков в 12:20 (с 6-го урока)";
+            }
+            document.getElementById('day-hours-badge').innerHTML = `<i class="ph ph-clock text-indigo-600"></i> ${BELL_SCHEDULE[firstLesson.num].start} – ${BELL_SCHEDULE[lastLesson.num].end}`;
+            document.getElementById('day-count-badge').innerText = `${activeLessons.length} уроков`;
+
+            // Определяем текущий активный или следующий урок для подсветки
+            const { dayOfWeek, currentSeconds } = getNowState();
+            const isTodaySelected = (selectedDay === dayOfWeek);
+
+            const container = document.getElementById('lessons-list');
+            container.innerHTML = '';
+
+            lessons.forEach((item, index) => {
+                const bell = BELL_SCHEDULE[item.num];
+                const startSec = timeToSeconds(bell.start);
+                const endSec = timeToSeconds(bell.end);
+
+                const isCurrentLesson = isTodaySelected && !item.empty && !item.isSkippedMain && currentSeconds >= startSec && currentSeconds < endSec;
+                const isPastLesson = isTodaySelected && currentSeconds >= endSec;
+
+                // Проверяем, идет ли сейчас перемена ПЕРЕД этим уроком
+                let isNextOnBreak = false;
+                if (isTodaySelected && !item.empty && !item.isSkippedMain && index > 0) {
+                    const prevBell = BELL_SCHEDULE[item.num - 1];
+                    const prevItem = lessons.find(l => l.num === item.num - 1);
+                    if (prevBell && prevItem && !prevItem.empty && !prevItem.isSkippedMain) {
+                        const prevEndSec = timeToSeconds(prevBell.end);
+                        if (currentSeconds >= prevEndSec && currentSeconds < startSec) {
+                            isNextOnBreak = true;
+                        }
+                    }
+                }
+
+                // Если урока нет (например 6 урок во вторник или 12 в понедельник)
+                if (item.empty) {
+                    const emptyCard = document.createElement('div');
+                    emptyCard.className = "bg-slate-100/70 border border-dashed border-slate-300 rounded-2xl px-4 py-3 flex items-center justify-between text-slate-400 text-xs sm:text-sm";
+                    emptyCard.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold px-2.5 py-1 rounded-lg bg-slate-200/70 text-slate-500">${item.num} урок</span>
+                            <span class="font-mono text-xs">${bell.start} – ${bell.end}</span>
+                        </div>
+                        <span class="font-medium italic">Нет урока (начинаем в 13:10)</span>
+                    `;
+                    container.appendChild(emptyCard);
+                    return;
+                }
+
+                // Если это 6-й урок в четверг при режиме старта в 13:10
+                if (item.isSkippedMain) {
+                    const optCard = document.createElement('div');
+                    optCard.className = "bg-slate-100/60 border border-dashed border-slate-300 rounded-2xl px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-slate-500 text-xs sm:text-sm";
+                    optCard.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold px-2.5 py-1 rounded-lg bg-slate-200/80 text-slate-600">${item.num} урок (${bell.start}–${bell.end})</span>
+                            <span class="font-semibold text-slate-600">${item.subject} — ${item.teacher} (каб. ${item.room})</span>
+                        </div>
+                        <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg self-start sm:self-auto">Основные уроки с 13:10 ↓</span>
+                    `;
+                    container.appendChild(optCard);
+                    return;
+                }
+
+                // Формируем карточку урока
+                const card = document.createElement('div');
+                let cardClasses = "bg-white rounded-2xl p-4 sm:p-5 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ";
+                if (isCurrentLesson) {
+                    cardClasses += "border-indigo-500 ring-2 ring-indigo-500/20 shadow-md active-lesson-card";
+                } else if (isNextOnBreak) {
+                    cardClasses += "border-amber-400 ring-2 ring-amber-400/20 shadow-sm bg-amber-50/20";
+                } else if (isPastLesson) {
+                    cardClasses += "border-slate-200/70 opacity-65 bg-slate-50/50";
+                } else {
+                    cardClasses += "border-slate-200/90 hover:border-indigo-200 shadow-sm";
+                }
+                card.className = cardClasses;
+
+                // Статус-бейдж внутри карточки
+                let statusPill = '';
+                if (isCurrentLesson) {
+                    statusPill = `<span class="inline-flex items-center gap-1.5 bg-indigo-600 text-white text-[11px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wide"><span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping"></span> Идёт сейчас</span>`;
+                } else if (isNextOnBreak) {
+                    statusPill = `<span class="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[11px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wide">Следующий (Перемена)</span>`;
+                } else if (isPastLesson) {
+                    statusPill = `<span class="inline-flex items-center gap-1 text-slate-400 text-xs font-semibold"><i class="ph-bold ph-check"></i> Завершён</span>`;
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-start sm:items-center gap-3.5">
+                        <!-- Номер урока и время -->
+                        <div class="flex flex-col items-center justify-center min-w-[78px] py-2 px-2.5 rounded-xl ${isCurrentLesson ? 'bg-indigo-600 text-white' : 'bg-indigo-50/80 text-indigo-900'} text-center shrink-0">
+                            <span class="text-xs font-extrabold uppercase tracking-wider">${item.num} урок</span>
+                            <span class="text-[11px] font-mono ${isCurrentLesson ? 'text-indigo-100' : 'text-indigo-600'} font-semibold mt-0.5">${bell.start}–${bell.end}</span>
+                        </div>
+
+                        <!-- Название предмета и учитель -->
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h3 class="text-base sm:text-lg font-extrabold text-slate-800 leading-snug">${item.subject}</h3>
+                                ${statusPill}
+                            </div>
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-slate-500 mt-1">
+                                <span class="inline-flex items-center gap-1.5 font-medium text-slate-600">
+                                    <i class="ph-duotone ph-chalkboard-teacher text-indigo-500 text-base"></i>
+                                    ${item.teacher}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Кабинет -->
+                    <div class="flex items-center justify-end sm: shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                        <div class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200/60">
+                            <i class="ph-duotone ph-door-open text-indigo-600 text-base"></i>
+                            <span>${item.room.includes('Зал') ? item.room : 'каб. ' + item.room}</span>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // ==========================================
+        // 3. ЛОГИКА ЖИВОГО ТАЙМЕРА ДО УРОКА / КОНЦА УРОКА
+        // ==========================================
+        let lastRenderedStateKey = "";
+
+        function updateLiveTimer() {
+            const { dateObj, dayOfWeek, currentSeconds, timeString } = getNowState();
+
+            // 1. Обновляем часы и дату в шапке
+            document.getElementById('live-clock').innerText = timeString;
+            const dateFormatted = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+            document.getElementById('live-date').innerText = `${DAY_NAMES[dayOfWeek]}, ${dateFormatted}`;
+
+            // Элементы баннера статуса
+            const iconBox = document.getElementById('status-icon-box');
+            const badge = document.getElementById('status-badge');
+            const title = document.getElementById('status-title');
+            const subtitle = document.getElementById('status-subtitle');
+            const countdownBox = document.getElementById('countdown-box');
+            const countdownLabel = document.getElementById('countdown-label');
+            const countdownTimer = document.getElementById('countdown-timer');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const progressStartText = document.getElementById('progress-start-text');
+            const progressPercentText = document.getElementById('progress-percent-text');
+            const progressEndText = document.getElementById('progress-end-text');
+
+            // 2. Если сегодня выходной (Суббота или Воскресенье)
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                iconBox.innerText = "🎉";
+                badge.innerText = "Выходной день";
+                title.innerText = "Сегодня уроков нет! Отдыхайте и набирайтесь сил";
+                subtitle.innerText = "Ниже открыто расписание на понедельник для подготовки";
+                countdownBox.classList.add('hidden');
+                progressContainer.classList.add('hidden');
+                return;
+            }
+
+            // 3. Получаем активные уроки сегодняшнего учебного дня
+            const todayLessons = getDayLessons(dayOfWeek).filter(l => !l.empty && !l.isSkippedMain);
+            if (todayLessons.length === 0) return;
+
+            const firstLesson = todayLessons[0];
+            const lastLesson = todayLessons[todayLessons.length - 1];
+            const dayStartSec = timeToSeconds(BELL_SCHEDULE[firstLesson.num].start);
+            const dayEndSec = timeToSeconds(BELL_SCHEDULE[lastLesson.num].end);
+
+            let currentStateKey = `${dayOfWeek}-${thursdayMode}-none`;
+
+            // СЦЕНАРИЙ A: До начала первого урока сегодня
+            if (currentSeconds < dayStartSec) {
+                const diff = dayStartSec - currentSeconds;
+                iconBox.innerText = "🎒";
+                badge.innerText = `Подготовка к школе • ${DAY_NAMES[dayOfWeek]}`;
+                title.innerText = `Первый урок сегодня в ${BELL_SCHEDULE[firstLesson.num].start}: ${firstLesson.subject} (${firstLesson.num} урок)`;
+                subtitle.innerText = `Кабинет: ${firstLesson.room} • Учитель: ${firstLesson.teacher}`;
+
+                countdownBox.classList.remove('hidden');
+                countdownLabel.innerText = `До урока (${BELL_SCHEDULE[firstLesson.num].start})`;
+                countdownTimer.innerText = formatDuration(diff);
+                progressContainer.classList.add('hidden');
+                currentStateKey = `${dayOfWeek}-${thursdayMode}-before`;
+            }
+            // СЦЕНАРИЙ B: Все уроки на сегодня уже закончились
+            else if (currentSeconds >= dayEndSec) {
+                iconBox.innerText = "🏠";
+                badge.innerText = "Учебный день завершён";
+                title.innerText = "Уроки на сегодня закончились! Отдыхайте 🎉";
+                const nextDay = dayOfWeek === 5 ? 1 : dayOfWeek + 1;
+                subtitle.innerText = `Не забудьте проверить расписание на ${DAY_NAMES[nextDay].toLowerCase()}`;
+
+                countdownBox.classList.add('hidden');
+                progressContainer.classList.add('hidden');
+                currentStateKey = `${dayOfWeek}-after`;
+            }
+            // СЦЕНАРИЙ C: Идёт урок или перемена между уроками
+            else {
+                let foundActiveLesson = null;
+                let foundBreakNextLesson = null;
+                let prevLessonEndSec = 0;
+
+                for (let i = 0; i < todayLessons.length; i++) {
+                    const les = todayLessons[i];
+                    const bell = BELL_SCHEDULE[les.num];
+                    const sSec = timeToSeconds(bell.start);
+                    const eSec = timeToSeconds(bell.end);
+
+                    if (currentSeconds >= sSec && currentSeconds < eSec) {
+                        foundActiveLesson = { ...les, startSec: sSec, endSec: eSec, startStr: bell.start, endStr: bell.end };
+                        break;
+                    }
+                    if (i > 0) {
+                        const prevLes = todayLessons[i - 1];
+                        const prevBell = BELL_SCHEDULE[prevLes.num];
+                        const pEndSec = timeToSeconds(prevBell.end);
+                        if (currentSeconds >= pEndSec && currentSeconds < sSec) {
+                            foundBreakNextLesson = { ...les, startSec: sSec, endSec: eSec, startStr: bell.start, prevEndStr: prevBell.end };
+                            prevLessonEndSec = pEndSec;
+                            break;
+                        }
+                    }
+                }
+
+                // Если сейчас идёт урок
+                if (foundActiveLesson) {
+                    const remaining = foundActiveLesson.endSec - currentSeconds;
+                    const duration = foundActiveLesson.endSec - foundActiveLesson.startSec;
+                    const elapsed = currentSeconds - foundActiveLesson.startSec;
+                    const percent = Math.min(100, Math.max(0, Math.round((elapsed / duration) * 100)));
+
+                    iconBox.innerText = "📚";
+                    badge.innerText = `Сейчас идёт ${foundActiveLesson.num} урок (${foundActiveLesson.startStr} – ${foundActiveLesson.endStr})`;
+                    title.innerText = foundActiveLesson.subject;
+                    subtitle.innerText = `Преподаватель: ${foundActiveLesson.teacher} • Кабинет: ${foundActiveLesson.room}`;
+
+                    countdownBox.classList.remove('hidden');
+                    countdownLabel.innerText = "До конца урока";
+                    countdownTimer.innerText = formatDuration(remaining);
+
+                    progressContainer.classList.remove('hidden');
+                    progressStartText.innerText = `Начало: ${foundActiveLesson.startStr}`;
+                    progressPercentText.innerText = `Прошло ${percent}% урока`;
+                    progressEndText.innerText = `Звонок в ${foundActiveLesson.endStr}`;
+                    progressBar.style.width = `${percent}%`;
+                    progressBar.className = "h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full transition-all duration-500";
+
+                    currentStateKey = `${dayOfWeek}-lesson-${foundActiveLesson.num}`;
+                }
+                // Если сейчас перемена
+                else if (foundBreakNextLesson) {
+                    const remaining = foundBreakNextLesson.startSec - currentSeconds;
+                    const duration = foundBreakNextLesson.startSec - prevLessonEndSec;
+                    const elapsed = currentSeconds - prevLessonEndSec;
+                    const percent = Math.min(100, Math.max(0, Math.round((elapsed / duration) * 100)));
+
+                    iconBox.innerText = "☕";
+                    badge.innerText = `Сейчас перемена! (${foundBreakNextLesson.prevEndStr} – ${foundBreakNextLesson.startStr})`;
+                    title.innerText = `Следующий: ${foundBreakNextLesson.subject} (${foundBreakNextLesson.num} урок)`;
+                    subtitle.innerText = `Идите в каб. ${foundBreakNextLesson.room} • Учитель: ${foundBreakNextLesson.teacher}`;
+
+                    countdownBox.classList.remove('hidden');
+                    countdownLabel.innerText = "До начала урока";
+                    countdownTimer.innerText = formatDuration(remaining);
+
+                    progressContainer.classList.remove('hidden');
+                    progressStartText.innerText = `Перемена с ${foundBreakNextLesson.prevEndStr}`;
+                    progressPercentText.innerText = `${percent}% перемены`;
+                    progressEndText.innerText = `Урок в ${foundBreakNextLesson.startStr}`;
+                    progressBar.style.width = `${percent}%`;
+                    progressBar.className = "h-full bg-gradient-to-r from-amber-400 to-orange-400 rounded-full transition-all duration-500";
+
+                    currentStateKey = `${dayOfWeek}-break-${foundBreakNextLesson.num}`;
+                }
+            }
+
+            // Перерисовываем карточки только при смене урока/перемены, чтобы не сбивать DOM каждую секунду
+            if (currentStateKey !== lastRenderedStateKey) {
+                lastRenderedStateKey = currentStateKey;
+                updateDayTabsUI();
+                renderLessonsForSelectedDay();
+            }
+        }
+
+        // ==========================================
+        // 4. ДЕМО-РЕЖИМ (СИМУЛЯТОР ВРЕМЕНИ)
+        // ==========================================
+        function toggleDemoPanel() {
+            const panel = document.getElementById('demo-panel');
+            const chevron = document.getElementById('demo-chevron');
+            panel.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        function applyPreset() {
+            const preset = document.getElementById('sim-preset').value;
+            if (preset === 'real') {
+                resetSimulation();
+                return;
+            }
+            const chosenDay = parseInt(document.getElementById('sim-day').value, 10);
+            isSimulated = true;
+            simDay = chosenDay;
+
+            const presetTimes = {
+                'before':  "11:50",
+                'lesson6': "12:35",
+                'break7':  "13:05",
+                'lesson7': "13:25",
+                'lesson9': "15:10",
+                'after':   "18:30"
+            };
+            simSecondsOffset = timeToSeconds(presetTimes[preset] || "12:35");
+
+            document.getElementById('demo-active-pill').classList.remove('hidden');
+            document.getElementById('weekend-notice').classList.add('hidden');
+            selectDay(simDay);
+            updateLiveTimer();
+        }
+
+        function applySimulation() {
+            if (document.getElementById('sim-preset').value === 'real') {
+                document.getElementById('sim-preset').value = 'lesson6';
+            }
+            applyPreset();
+        }
+
+        function resetSimulation() {
+            isSimulated = false;
+            document.getElementById('sim-preset').value = 'real';
+            document.getElementById('demo-active-pill').classList.add('hidden');
+            initAutoDaySelection();
+            updateLiveTimer();
+        }
+
+        // ==========================================
+        // 5. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ
+        // ==========================================
+        function initAutoDaySelection() {
+            const realDay = new Date().getDay(); // 0 - Вс, 1..5 - Пн..Пт, 6 - Сб
+            const weekendNotice = document.getElementById('weekend-notice');
+
+            if (realDay >= 1 && realDay <= 5) {
+                weekendNotice.classList.add('hidden');
+                selectDay(realDay);
+                document.getElementById('sim-day').value = String(realDay);
+            } else {
+                // В субботу или воскресенье открываем Понедельник и показываем плашку
+                weekendNotice.classList.remove('hidden');
+                selectDay(1);
+                document.getElementById('sim-day').value = "1";
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initAutoDaySelection();
+            updateLiveTimer();
+            setInterval(updateLiveTimer, 1000);
+        });
+    </script>
+</body>
+</html>
