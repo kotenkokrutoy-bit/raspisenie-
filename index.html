@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Расписание 7г класса • Ультимативная кастомизация и игра</title>
+    <title>Расписание 7г класса • Облачный чат и Тетрис</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;700&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&family=Montserrat:wght@500;700;900&family=Poppins:wght@500;700;900&family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Fira+Code:wght@500;700&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&family=Montserrat:wght@500;700;900&family=Pacifico&family=Poppins:wght@500;700;900&family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         :root {
             --accent: #4f46e5;
@@ -34,9 +39,10 @@
             --radius-box: 14px;
             --card-opacity: 0.65;
             --blur-strength: 20px;
-            --font-family: 'Inter', sans-serif;
+            --custom-font: 'Inter', sans-serif;
             --custom-bg-pattern: none;
             --pattern-size: 24px;
+            --shadow-depth: 0 8px 32px 0 rgba(0, 0, 0, 0.18);
         }
 
         body[data-theme="light"] {
@@ -93,14 +99,32 @@
             --border-base: rgba(254, 205, 211, 0.8);
         }
 
+        body[data-theme="cyberpunk"] {
+            --bg-body: #090514;
+            --bg-surface: rgba(30, 20, 50, var(--card-opacity));
+            --bg-surface-alt: rgba(15, 10, 30, calc(var(--card-opacity) * 0.9));
+            --text-primary: #f0abfc;
+            --text-secondary: #e879f9;
+            --border-base: rgba(217, 70, 239, 0.35);
+        }
+
+        body[data-theme="emerald_forest"] {
+            --bg-body: #022c22;
+            --bg-surface: rgba(6, 78, 59, var(--card-opacity));
+            --bg-surface-alt: rgba(2, 44, 34, calc(var(--card-opacity) * 0.9));
+            --text-primary: #ecfdf5;
+            --text-secondary: #a7f3d0;
+            --border-base: rgba(52, 211, 153, 0.3);
+        }
+
         html[data-shape="rounded"], body[data-shape="rounded"] { --radius-btn: 14px; --radius-card: 20px; --radius-badge: 12px; --radius-box: 14px; }
         html[data-shape="pill"], body[data-shape="pill"] { --radius-btn: 9999px; --radius-card: 30px; --radius-badge: 9999px; --radius-box: 22px; }
         html[data-shape="sharp"], body[data-shape="sharp"] { --radius-btn: 4px; --radius-card: 6px; --radius-badge: 4px; --radius-box: 4px; }
 
-        html {
+        html, body {
             scroll-behavior: smooth;
             -webkit-tap-highlight-color: transparent;
-            font-family: var(--font-family);
+            font-family: var(--custom-font) !important;
         }
 
         body {
@@ -125,19 +149,13 @@
             background-color: var(--bg-body) !important;
         }
 
-        body[data-pattern="dots"] { 
-            --custom-bg-pattern: radial-gradient(circle, rgba(255, 255, 255, 0.22) 1.5px, transparent 1.5px); 
-            --pattern-size: 24px;
-        }
-        body[data-pattern="grid"] { 
-            --custom-bg-pattern: linear-gradient(to right, rgba(255, 255, 255, 0.12) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.12) 1px, transparent 1px); 
-            --pattern-size: 32px;
-        }
-        body[data-pattern="none"] {
-            --custom-bg-pattern: none;
-        }
+        body[data-pattern="dots"] { --custom-bg-pattern: radial-gradient(circle, rgba(255, 255, 255, 0.22) 1.5px, transparent 1.5px); --pattern-size: 24px; }
+        body[data-pattern="grid"] { --custom-bg-pattern: linear-gradient(to right, rgba(255, 255, 255, 0.12) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.12) 1px, transparent 1px); --pattern-size: 32px; }
+        body[data-pattern="diagonal"] { --custom-bg-pattern: repeating-linear-gradient(45deg, rgba(255,255,255,0.06) 0, rgba(255,255,255,0.06) 1px, transparent 0, transparent 50%); --pattern-size: 20px; }
+        body[data-pattern="waves"] { --custom-bg-pattern: radial-gradient(circle at 0 0, transparent 70%, rgba(255,255,255,0.1) 70%); --pattern-size: 30px; }
+        body[data-pattern="none"] { --custom-bg-pattern: none; }
 
-        .font-mono-num { font-family: 'JetBrains Mono', monospace; }
+        .font-mono-num { font-family: 'JetBrains Mono', monospace !important; }
 
         .theme-surface {
             background-color: var(--bg-surface);
@@ -146,7 +164,7 @@
             border-radius: var(--radius-card) !important;
             backdrop-filter: blur(var(--blur-strength));
             -webkit-backdrop-filter: blur(var(--blur-strength));
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.18);
+            box-shadow: var(--shadow-depth);
             transition: background-color 0.3s ease, border-color 0.3s ease, border-radius 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
         }
 
@@ -166,6 +184,7 @@
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-family: var(--custom-font) !important;
         }
         .custom-btn:active { transform: scale(0.94); }
 
@@ -246,21 +265,25 @@
         <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-black/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="max-w-4xl mx-auto px-4 sm:px-6 py-5 sm:py-7 relative z-10">
-            <div class="flex items-center justify-between gap-2 mb-3 flex-wrap">
-                <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3.5 py-1.5 custom-badge text-xs font-semibold tracking-wide uppercase border border-white/20">
+            <div class="flex items-center justify-between gap-2 mb-4 flex-nowrap">
+                <div class="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md px-3 py-1.5 custom-badge text-[11px] sm:text-xs font-semibold tracking-wide uppercase border border-white/20 shrink-0">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 -ml-4"></span>
-                    <span>2 смена • 7г класс</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 -ml-3.5"></span>
+                    <span class="truncate">2 сменя • 7г</span>
                 </div>
 
-                <div class="flex items-center gap-2 flex-wrap">
-                    <button onclick="openGameModal()" class="custom-btn inline-flex items-center gap-1.5 bg-amber-600/80 hover:bg-amber-600 backdrop-blur-md px-3.5 py-2 text-xs sm:text-sm font-bold text-white border border-white/30 shadow-md">
-                        <i class="ph-fill ph-gamecontroller text-base text-amber-200"></i>
-                        <span>ИГРА</span>
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <button onclick="openChatModal()" class="custom-btn inline-flex items-center gap-1 bg-emerald-600/80 hover:bg-emerald-600 backdrop-blur-md px-3 py-1.5 text-xs sm:text-sm font-bold text-white border border-white/30 shadow-md">
+                        <i class="ph-fill ph-chat-circle-dots text-sm sm:text-base text-emerald-200"></i>
+                        <span>ЧАТ КЛАССА</span>
                     </button>
-                    <button onclick="openCustomizer()" class="custom-btn inline-flex items-center gap-1.5 bg-white/25 hover:bg-white/35 backdrop-blur-md px-3.5 py-2 text-xs sm:text-sm font-bold text-white border border-white/30 shadow-md">
-                        <i class="ph-fill ph-paint-brush-broad text-base text-amber-300 animate-spin" style="animation-duration: 8s;"></i>
-                        <span>Настройки</span>
+                    <button onclick="openGameModal()" class="custom-btn inline-flex items-center gap-1 bg-indigo-600/80 hover:bg-indigo-600 backdrop-blur-md px-3 py-1.5 text-xs sm:text-sm font-bold text-white border border-white/30 shadow-md">
+                        <i class="ph-fill ph-squares-four text-sm sm:text-base text-cyan-200"></i>
+                        <span>ТЕТРИС</span>
+                    </button>
+                    <button onclick="openCustomizer()" class="custom-btn inline-flex items-center gap-1 bg-white/25 hover:bg-white/35 backdrop-blur-md px-3 py-1.5 text-xs sm:text-sm font-bold text-white border border-white/30 shadow-md">
+                        <i class="ph-fill ph-paint-brush-broad text-sm sm:text-base text-amber-300 animate-spin" style="animation-duration: 8s;"></i>
+                        <span>Вид</span>
                     </button>
                 </div>
             </div>
@@ -276,8 +299,8 @@
                 </div>
 
                 <div class="bg-white/10 backdrop-blur-xl border border-white/25 custom-badge px-5 py-2.5 text-left sm:text-right w-full sm:w-auto flex sm:flex-col justify-between items-center sm:items-end shadow-lg">
-                    <div id="live-clock" class="text-2xl sm:text-3xl font-extrabold font-mono-num tracking-tight leading-none drop-shadow">
-                        00:00:00
+                    <div id="live-clock" class="text-xl sm:text-2xl font-extrabold font-mono-num tracking-tight leading-none drop-shadow">
+                        00:00:00.000
                     </div>
                     <div id="live-date" class="text-xs sm:text-sm text-white/85 font-medium mt-0 sm:mt-1">
                         Загрузка даты...
@@ -287,7 +310,6 @@
 
             <!-- ВИДЖЕТ ЖИВОГО ТАЙМЕРА И СТОЛОВОЙ -->
             <div class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                <!-- Основной таймер урока -->
                 <div id="status-banner" class="sm:col-span-2 bg-white/10 backdrop-blur-xl border border-white/25 custom-card p-4 sm:p-5 transition-all duration-300 shadow-2xl flex flex-col justify-between">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
                         <div class="flex items-start sm:items-center gap-3.5">
@@ -307,12 +329,12 @@
                             </div>
                         </div>
 
-                        <div id="countdown-box" class="hidden bg-black/30 backdrop-blur-md border border-white/20 custom-box px-5 py-2.5 text-center shrink-0 shadow-inner">
+                        <div id="countdown-box" class="hidden bg-black/30 backdrop-blur-md border border-white/20 custom-box px-4 py-2.5 text-center shrink-0 shadow-inner">
                             <div id="countdown-label" class="text-[10px] uppercase tracking-wider text-white/80 font-bold">
                                 До конца урока
                             </div>
-                            <div id="countdown-timer" class="text-xl sm:text-2xl font-mono-num font-extrabold text-amber-300 tracking-wider mt-0.5 drop-shadow">
-                                00:00
+                            <div id="countdown-timer" class="text-base sm:text-lg font-mono-num font-extrabold text-amber-300 tracking-wider mt-0.5 drop-shadow">
+                                00:00:00.000
                             </div>
                         </div>
                     </div>
@@ -320,16 +342,15 @@
                     <div id="progress-container" class="hidden mt-4">
                         <div class="flex justify-between text-xs text-white/90 font-semibold mb-1.5 px-1">
                             <span id="progress-start-text">Начало</span>
-                            <span id="progress-percent-text">0%</span>
+                            <span id="progress-percent-text">0.00%</span>
                             <span id="progress-end-text">Конец</span>
                         </div>
                         <div class="w-full h-2.5 bg-black/30 backdrop-blur-md rounded-full overflow-hidden p-0.5 border border-white/20">
-                            <div id="progress-bar" class="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full transition-all duration-500 shadow-sm" style="width: 0%"></div>
+                            <div id="progress-bar" class="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full transition-all duration-75 shadow-sm" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Таймер столовой до 16:25 -->
                 <div class="bg-white/10 backdrop-blur-xl border border-white/25 custom-card p-4 sm:p-5 flex flex-col justify-between shadow-2xl">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 custom-box bg-amber-500/20 text-amber-300 border border-amber-400/30 flex items-center justify-center text-xl shrink-0">
@@ -337,12 +358,12 @@
                         </div>
                         <div>
                             <div class="text-[10px] font-extrabold uppercase tracking-wider text-white/75">Столовая школы</div>
-                            <div class="text-xs font-bold text-white">Закрытие в 16:25</div>
+                            <div class="text-xs font-bold text-white">Открытие 08:00 • Закрытие 16:25</div>
                         </div>
                     </div>
                     <div class="mt-3 text-center bg-black/30 backdrop-blur-md border border-white/20 custom-box py-2 px-3">
-                        <div id="canteen-status-label" class="text-[10px] uppercase tracking-wider text-white/70 font-bold">Осталось до закрытия</div>
-                        <div id="canteen-timer" class="text-lg sm:text-xl font-mono-num font-extrabold text-amber-300 tracking-wider mt-0.5">00:00:00</div>
+                        <div id="canteen-status-label" class="text-[10px] uppercase tracking-wider text-white/70 font-bold">Статус столовой</div>
+                        <div id="canteen-timer" class="text-sm sm:text-base font-mono-num font-extrabold text-amber-300 tracking-wider mt-0.5">00:00:00.000</div>
                     </div>
                 </div>
             </div>
@@ -438,62 +459,75 @@
             <div id="lessons-list" class="space-y-3"></div>
         </div>
 
-        <!-- СИМУЛЯТОР ВРЕМЕНИ -->
-        <div class="mt-10 theme-surface border shadow-xl overflow-hidden">
-            <button onclick="toggleDemoPanel()" class="w-full px-5 py-4 text-left flex items-center justify-between hover:opacity-90 transition-opacity">
-                <div class="flex items-center gap-2.5 text-xs sm:text-sm font-bold">
-                    <i class="ph-duotone ph-clock-countdown accent-text text-xl"></i>
-                    <span>Симулятор времени и проверка таймера</span>
-                    <span id="demo-active-pill" class="hidden bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full font-extrabold uppercase shadow-sm">Тест</span>
+    </main>
+
+    <!-- МОДАЛЬНОЕ ОКНО ЧАТА КЛАССА -->
+    <div id="chat-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 modal-backdrop transition-opacity">
+        <div class="theme-surface border w-full max-w-lg p-5 sm:p-6 shadow-2xl flex flex-col rounded-3xl animate-[lessonSlideIn_0.25s_ease-out] h-[85vh] sm:h-[80vh]">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-500/20 mb-3 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 custom-badge bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-xl">
+                        💬
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-extrabold">ЧАТ 7Г КЛАССА</h3>
+                        <p class="text-xs theme-text-muted">Общайтесь с одноклассниками в реальном времени</p>
+                    </div>
                 </div>
-                <i id="demo-chevron" class="ph-bold ph-caret-down theme-text-muted transition-transform duration-300"></i>
-            </button>
-            <div id="demo-panel" class="hidden p-5 border-t border-slate-500/25 text-sm space-y-4">
-                <p class="text-xs theme-text-muted">Выберите сценарий для проверки работы живого таймера:</p>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold theme-text-muted mb-1">День недели:</label>
-                        <select id="sim-day" onchange="applySimulation()" class="w-full custom-badge border theme-surface-alt px-3 py-2.5 text-sm font-semibold focus:outline-none">
-                            <option value="1">Понедельник</option>
-                            <option value="2">Вторник</option>
-                            <option value="3">Среда</option>
-                            <option value="4">Четверг</option>
-                            <option value="5">Пятница</option>
-                        </select>
+                <button onclick="closeChatModal()" class="custom-btn theme-surface-alt border w-9 h-9 flex items-center justify-center text-lg">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+
+            <!-- Экран ввода пин-кода -->
+            <div id="chat-auth-view" class="flex-grow flex flex-col items-center justify-center p-4 text-center">
+                <div class="w-16 h-16 custom-box bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-3xl mb-4 shadow-inner">
+                    🔒
+                </div>
+                <h4 class="text-base sm:text-lg font-extrabold mb-1">Введите секретный PIN-код</h4>
+                <p class="text-xs theme-text-muted mb-4">Доступ только для учеников 7г класса</p>
+                <div class="w-full max-w-xs space-y-3">
+                    <input type="password" id="chat-pin-input" placeholder="PIN-код" class="w-full custom-badge border theme-surface-alt px-4 py-3 text-center text-lg font-mono-num tracking-widest focus:outline-none">
+                    <div id="chat-pin-error" class="hidden text-xs font-bold text-red-400">Неверный PIN-код!</div>
+                    <button onclick="verifyChatPin()" class="w-full custom-btn accent-bg py-3 text-sm font-extrabold shadow-xl">Войти в чат</button>
+                </div>
+            </div>
+
+            <!-- Экран самого чата -->
+            <div id="chat-main-view" class="hidden flex-grow flex flex-col overflow-hidden">
+                <div class="flex items-center justify-between py-2 px-3 theme-surface-alt border custom-badge mb-3 text-xs shrink-0">
+                    <div class="flex items-center gap-2">
+                        <span>Ваш ник:</span>
+                        <input type="text" id="chat-nickname" onchange="updateNickname(this.value)" class="bg-black/30 border border-white/20 rounded px-2 py-1 font-bold text-xs w-32 focus:outline-none" value="Ученик 7Г">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold theme-text-muted mb-1">Сценарий:</label>
-                        <select id="sim-preset" onchange="applyPreset()" class="w-full custom-badge border theme-surface-alt px-3 py-2.5 text-sm font-semibold focus:outline-none">
-                            <option value="real">Реальное время (Авто)</option>
-                            <option value="before">До уроков (11:50)</option>
-                            <option value="lesson6">Идёт 6 урок (12:35)</option>
-                            <option value="break7">Перемена (13:05)</option>
-                            <option value="lesson7">Идёт 7 урок (13:25)</option>
-                            <option value="after">После уроков (18:30)</option>
-                        </select>
-                    </div>
-                    <div class="flex items-end">
-                        <button onclick="resetSimulation()" class="w-full custom-btn accent-soft-bg border border-current/20 font-bold py-2.5 px-4 text-xs">
-                            Сбросить тест
-                        </button>
-                    </div>
+                    <span class="text-emerald-400 font-bold flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Онлайн</span>
+                </div>
+
+                <div id="chat-messages-container" class="flex-grow overflow-y-auto space-y-3 p-3 theme-surface-alt border custom-box mb-3">
+                    <!-- Сообщения будут подгружаться сюда через Firebase -->
+                </div>
+
+                <div class="flex gap-2 shrink-0">
+                    <input type="text" id="chat-input" onkeydown="if(event.key==='Enter') sendChatMessage()" placeholder="Написать сообщение..." class="flex-grow custom-badge border theme-surface-alt px-4 py-3 text-sm focus:outline-none">
+                    <button onclick="sendChatMessage()" class="custom-btn accent-bg px-5 py-3 text-sm font-extrabold shadow-md shrink-0">
+                        <i class="ph-bold ph-paper-plane-tilt text-lg"></i>
+                    </button>
                 </div>
             </div>
         </div>
+    </div>
 
-    </main>
-
-    <!-- МОДАЛЬНОЕ ОКНО ИГРЫ -->
+    <!-- МОДАЛЬНОЕ ОКНО ИГРЫ ТЕТРИС -->
     <div id="game-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 modal-backdrop transition-opacity">
-        <div class="theme-surface border w-full max-w-xl p-5 sm:p-6 shadow-2xl flex flex-col rounded-3xl animate-[lessonSlideIn_0.25s_ease-out] text-center">
+        <div class="theme-surface border w-full max-w-md p-5 sm:p-6 shadow-2xl flex flex-col rounded-3xl animate-[lessonSlideIn_0.25s_ease-out] text-center">
             <div class="flex items-center justify-between pb-3 border-b border-slate-500/20 mb-4">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 custom-badge bg-amber-600/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-xl">
+                    <div class="w-9 h-9 custom-badge bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-xl">
                         🎮
                     </div>
                     <div>
-                        <h3 class="text-base sm:text-lg font-extrabold">ИГРА • Раннер 7Г</h3>
-                        <p class="text-xs theme-text-muted">Прыгайте по пробелу или тапу, уворачивайтесь от препятствий!</p>
+                        <h3 class="text-base sm:text-lg font-extrabold">РЕТРО ТЕТРИС</h3>
+                        <p class="text-xs theme-text-muted">Управляйте фигуками, собирайте линии!</p>
                     </div>
                 </div>
                 <button onclick="closeGameModal()" class="custom-btn theme-surface-alt border w-9 h-9 flex items-center justify-center text-lg">
@@ -501,32 +535,50 @@
                 </button>
             </div>
 
-            <div class="relative w-full bg-slate-950/80 border border-white/20 custom-card overflow-hidden h-52 sm:h-60 flex items-end justify-center shadow-inner">
-                <canvas id="gameCanvas" class="w-full h-full block cursor-pointer"></canvas>
-                <div id="game-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-white">
-                    <div id="game-msg" class="text-base sm:text-lg font-extrabold mb-3">Нажмите ПРОБЕЛ или тапните экран, чтобы начать!</div>
-                    <button onclick="startArcadeGame()" class="custom-btn accent-bg px-7 py-3 text-sm font-extrabold shadow-xl">Играть 🚀</button>
+            <!-- Игровое поле Тетриса -->
+            <div class="relative w-full flex justify-center bg-slate-950/90 border border-white/20 custom-card p-3 shadow-inner">
+                <canvas id="tetrisCanvas" width="200" height="400" class="block bg-black/60 border border-white/10 rounded"></canvas>
+                <div class="ml-4 flex flex-col justify-between text-left text-xs">
+                    <div>
+                        <div class="text-[10px] uppercase font-bold text-white/60">Счёт</div>
+                        <div id="tetris-score" class="text-lg font-mono-num font-extrabold text-amber-300">0</div>
+                    </div>
+                    <div class="my-3">
+                        <div class="text-[10px] uppercase font-bold text-white/60">Линии</div>
+                        <div id="tetris-lines" class="text-lg font-mono-num font-extrabold text-emerald-400">0</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase font-bold text-white/60">Рекорд</div>
+                        <div id="tetris-highscore" class="text-lg font-mono-num font-extrabold text-cyan-300">0</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex justify-between items-center mt-4 text-xs sm:text-sm font-bold px-2">
-                <span>Счёт: <span id="game-score" class="font-mono-num accent-text text-base">0</span></span>
-                <span>Рекорд класса: <span id="game-highscore" class="font-mono-num text-amber-300 text-base">0</span></span>
+            <!-- Кнопки управления на экране для телефонов -->
+            <div class="grid grid-cols-4 gap-2 mt-4">
+                <button onclick="tetrisMove(-1)" class="custom-btn theme-surface-alt border py-2.5 font-extrabold text-sm">◀️</button>
+                <button onclick="tetrisRotate()" class="custom-btn theme-surface-alt border py-2.5 font-extrabold text-sm">🔄</button>
+                <button onclick="tetrisDrop()" class="custom-btn theme-surface-alt border py-2.5 font-extrabold text-sm">⬇️</button>
+                <button onclick="tetrisMove(1)" class="custom-btn theme-surface-alt border py-2.5 font-extrabold text-sm">▶️</button>
+            </div>
+
+            <div class="mt-4">
+                <button onclick="startTetrisGame()" class="w-full custom-btn accent-bg py-3 text-sm font-extrabold shadow-xl">Старт / Рестарт</button>
             </div>
         </div>
     </div>
 
     <!-- МОДАЛЬНОЕ ОКНО КАСТОМИЗАЦИИ -->
     <div id="customizer-modal" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 modal-backdrop transition-opacity">
-        <div class="theme-surface border w-full max-w-xl p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl animate-[lessonSlideIn_0.25s_ease-out]">
+        <div class="theme-surface border w-full max-w-2xl p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl animate-[lessonSlideIn_0.25s_ease-out]">
             <div class="flex items-center justify-between pb-4 border-b border-slate-500/20">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 custom-badge accent-soft-bg border border-current/20 flex items-center justify-center text-xl">
-                        <i class="ph-duotone ph-sliders-horizontal"></i>
+                        🎨
                     </div>
                     <div>
-                        <h3 class="text-base sm:text-lg font-extrabold">Ультимативная кастомизация</h3>
-                        <p class="text-xs theme-text-muted">Темы, цвета, форма и оптимизация</p>
+                        <h3 class="text-base sm:text-lg font-extrabold">Кастомизация</h3>
+                        <p class="text-xs theme-text-muted">Темы, палитры, шрифты, формат таймеров</p>
                     </div>
                 </div>
                 <button onclick="closeCustomizer()" class="custom-btn theme-surface-alt border w-9 h-9 flex items-center justify-center text-lg">
@@ -539,7 +591,7 @@
                 <div class="theme-surface-alt p-3.5 border custom-badge flex items-center justify-between">
                     <div>
                         <div class="font-extrabold text-xs">🚀 Режим для слабых устройств</div>
-                        <div class="text-[11px] theme-text-muted">Отключает размытие, тени и анимации для скорости</div>
+                        <div class="text-[11px] theme-text-muted">Отключает размытие, тени и анимации для максимальной скорости</div>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="low-perf-toggle" onchange="toggleLowPerf(this.checked)" class="sr-only peer">
@@ -547,10 +599,23 @@
                     </label>
                 </div>
 
-                <!-- 1. Темы -->
+                <!-- НАСТРОЙКА ФОРМАТА ТАЙМЕРОВ -->
                 <div>
-                    <label class="block text-xs font-extrabold uppercase tracking-wider theme-text-muted mb-2.5">1. Тема оформления</label>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="theme-selector">
+                    <label class="block text-xs font-extrabold uppercase tracking-wider theme-text-muted mb-2.5">⏱️ Формат отображения таймеров</label>
+                    <select id="timer-format-select" onchange="setTimerFormat(this.value)" class="w-full custom-badge border theme-surface-alt px-3 py-2.5 text-sm font-semibold focus:outline-none">
+                        <option value="full">Полный (Часы:Минуты:Секунды.Миллисекунды)</option>
+                        <option value="secs_ms">Только Секунды и Миллисекунды (.SSS)</option>
+                        <option value="secs_only">Только Секунды (00с)</option>
+                        <option value="mins_only">Только Минуты (00м)</option>
+                        <option value="hours_only">Только Часы (00ч)</option>
+                        <option value="compact">Компактный (без миллисекунд HH:MM:SS)</option>
+                    </select>
+                </div>
+
+                <!-- 1. Темы оформления -->
+                <div>
+                    <label class="block text-xs font-extrabold uppercase tracking-wider theme-text-muted mb-2.5">1. Тема оформления (8 вариантов)</label>
+                    <div class="grid grid-cols-3 sm:grid-cols-3 gap-2.5" id="theme-selector">
                         <button onclick="setAppTheme('light')" data-val="light" class="theme-opt custom-btn border p-3 flex flex-col items-center gap-1.5 text-xs font-bold">
                             <i class="ph-duotone ph-sun text-xl text-amber-500"></i><span>Светлая</span>
                         </button>
@@ -569,49 +634,35 @@
                         <button onclick="setAppTheme('pastel')" data-val="pastel" class="theme-opt custom-btn border p-3 flex flex-col items-center gap-1.5 text-xs font-bold">
                             <i class="ph-duotone ph-heart text-xl text-rose-400"></i><span>Пастель</span>
                         </button>
+                        <button onclick="setAppTheme('cyberpunk')" data-val="cyberpunk" class="theme-opt custom-btn border p-3 flex flex-col items-center gap-1.5 text-xs font-bold">
+                            <i class="ph-duotone ph-gamepad text-xl text-fuchsia-400"></i><span>Киберпанк</span>
+                        </button>
+                        <button onclick="setAppTheme('emerald_forest')" data-val="emerald_forest" class="theme-opt custom-btn border p-3 flex flex-col items-center gap-1.5 text-xs font-bold">
+                            <i class="ph-duotone ph-tree text-xl text-emerald-300"></i><span>Изумруд</span>
+                        </button>
                     </div>
                 </div>
 
                 <!-- 2. Акцентные цвета -->
                 <div>
-                    <label class="block text-xs font-extrabold uppercase tracking-wider theme-text-muted mb-2.5">2. Акцентный цвет (12 вариантов)</label>
-                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-2.5" id="color-selector">
-                        <button onclick="setAppAccent('indigo')" data-val="indigo" class="color-opt custom-btn border p-2.5 flex items-center gap-2 text-xs font-bold">
-                            <span class="w-5 h-5 rounded-full bg-indigo-600 shadow-sm border border-white/30 shrink-0"></span><span>Индиго</span>
-                        </button>
-                        <button onclick="setAppAccent('emerald')" data-val="emerald" class="color-opt custom-btn border p-2.5 flex items-center gap-2 text-xs font-bold">
-                            <span class="w-5 h-5 rounded-full bg-emerald-600 shadow-sm border border-white/30 shrink-0"></span><span>Изумруд</span>
-                        </button>
-                        <button onclick="setAppAccent('rose')" data-val="rose" class="color-opt custom-btn border p-2.5 flex items-center gap-2 text-xs font-bold">
-                            <span class="w-5 h-5 rounded-full bg-rose-600 shadow-sm border border-white/30 shrink-0"></span><span>Роза</span>
-                        </button>
-                        <button onclick="setAppAccent('amber')" data-val="amber" class="color-opt custom-btn border p-2.5 flex items-center gap-2 text-xs font-bold">
-                            <span class="w-5 h-5 rounded-full bg-amber-500 shadow-sm border border-white/30 shrink-0"></span><span>Янтарь</span>
-                        </button>
-                        <button onclick="setAppAccent('cyan')" data-val="cyan" class="color-opt custom-btn border p-2.5 flex items-center gap-2 text-xs font-bold">
-                            <span class="w-5 h-5 rounded-full bg-cyan-600 shadow-sm border border-white/30 shrink-0"></span><span>Океан</span>
-                        </button>
-                        <button onclick="setAppAccent('violet')" data-val="violet" class="color-opt custom-btn border p-2.5 flex items-center gap-2 text-xs font-bold">
-                            <span class="w-5 h-5 rounded-full bg-purple-600 shadow-sm border border-white/30 shrink-0"></span><span>Фиолет</span>
-                        </button>
-                        <button onclick="setAppAccent('blue')" data-val="blue" class="color-opt custom-btn border p-2.5 flex items-center gap-2 text-xs font-bold">
-                            <span class="w-5 h-5 rounded-full bg-blue-600 shadow-sm border border-white/30 shrink-0"></span><span>Синий</span>
-                        </button>
-                        <button onclick="setAppAccent('teal')" data-val="teal" class="color-opt custom-btn border p-2.5 flex items-center gap-2 text-xs font-bold">
-                            <span class="w-5 h-5 rounded-full bg-teal-600 shadow-sm border border-white/30 shrink-0"></span><span>Тиаль</span>
-                        </button>
-                        <button onclick="setAppAccent('fuchsia')" data-val="fuchsia" class="color-opt custom-btn border p-2.5 flex items-center gap-2 text-xs font-bold">
-                            <span class="w-5 h-5 rounded-full bg-fuchsia-600 shadow-sm border border-white/30 shrink-0"></span><span>Фуксия</span>
-                        </button>
-                        <button onclick="setAppAccent('orange')" data-val="orange" class="color-opt custom-btn border p-2.5 flex items-center gap-2 text-xs font-bold">
-                            <span class="w-5 h-5 rounded-full bg-orange-500 shadow-sm border border-white/30 shrink-0"></span><span>Апельсин</span>
-                        </button>
-                        <button onclick="setAppAccent('lime')" data-val="lime" class="color-opt custom-btn border p-2.5 flex items-center gap-2 text-xs font-bold">
-                            <span class="w-5 h-5 rounded-full bg-lime-500 shadow-sm border border-white/30 shrink-0"></span><span>Лайм</span>
-                        </button>
-                        <button onclick="setAppAccent('ruby')" data-val="ruby" class="color-opt custom-btn border p-2.5 flex items-center gap-2 text-xs font-bold">
-                            <span class="w-5 h-5 rounded-full bg-red-600 shadow-sm border border-white/30 shrink-0"></span><span>Рубин</span>
-                        </button>
+                    <label class="block text-xs font-extrabold uppercase tracking-wider theme-text-muted mb-2.5">2. Акцентный цвет (16 вариантов)</label>
+                    <div class="grid grid-cols-4 sm:grid-cols-4 gap-2" id="color-selector">
+                        <button onclick="setAppAccent('indigo')" data-val="indigo" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-indigo-600 shrink-0"></span>Индиго</button>
+                        <button onclick="setAppAccent('emerald')" data-val="emerald" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-emerald-600 shrink-0"></span>Изумруд</button>
+                        <button onclick="setAppAccent('rose')" data-val="rose" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-rose-600 shrink-0"></span>Роза</button>
+                        <button onclick="setAppAccent('amber')" data-val="amber" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-amber-500 shrink-0"></span>Янтарь</button>
+                        <button onclick="setAppAccent('cyan')" data-val="cyan" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-cyan-600 shrink-0"></span>Океан</button>
+                        <button onclick="setAppAccent('violet')" data-val="violet" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-purple-600 shrink-0"></span>Фиолет</button>
+                        <button onclick="setAppAccent('blue')" data-val="blue" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-blue-600 shrink-0"></span>Синий</button>
+                        <button onclick="setAppAccent('teal')" data-val="teal" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-teal-600 shrink-0"></span>Тиаль</button>
+                        <button onclick="setAppAccent('fuchsia')" data-val="fuchsia" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-fuchsia-600 shrink-0"></span>Фуксия</button>
+                        <button onclick="setAppAccent('orange')" data-val="orange" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-orange-500 shrink-0"></span>Апельсин</button>
+                        <button onclick="setAppAccent('lime')" data-val="lime" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-lime-500 shrink-0"></span>Лайм</button>
+                        <button onclick="setAppAccent('ruby')" data-val="ruby" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-red-600 shrink-0"></span>Рубин</button>
+                        <button onclick="setAppAccent('gold')" data-val="gold" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-yellow-500 shrink-0"></span>Золото</button>
+                        <button onclick="setAppAccent('mint')" data-val="mint" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-teal-400 shrink-0"></span>Мята</button>
+                        <button onclick="setAppAccent('lavender')" data-val="lavender" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-indigo-400 shrink-0"></span>Лаванда</button>
+                        <button onclick="setAppAccent('coral')" data-val="coral" class="color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold"><span class="w-4 h-4 rounded-full bg-rose-400 shrink-0"></span>Коралл</button>
                     </div>
                 </div>
 
@@ -619,19 +670,13 @@
                 <div>
                     <label class="block text-xs font-extrabold uppercase tracking-wider theme-text-muted mb-2.5">3. Форма кнопок и карточек</label>
                     <div class="grid grid-cols-3 gap-2.5" id="shape-selector">
-                        <button onclick="setAppShape('rounded')" data-val="rounded" class="shape-opt custom-btn border p-2.5 flex flex-col items-center gap-1 text-xs font-bold">
-                            <div class="w-6 h-3 border-2 border-current rounded-sm"></div><span>Мягкие</span>
-                        </button>
-                        <button onclick="setAppShape('pill')" data-val="pill" class="shape-opt custom-btn border p-2.5 flex flex-col items-center gap-1 text-xs font-bold">
-                            <div class="w-6 h-3 border-2 border-current rounded-full"></div><span>Капсула</span>
-                        </button>
-                        <button onclick="setAppShape('sharp')" data-val="sharp" class="shape-opt custom-btn border p-2.5 flex flex-col items-center gap-1 text-xs font-bold">
-                            <div class="w-6 h-3 border-2 border-current rounded-none"></div><span>Строгие</span>
-                        </button>
+                        <button onclick="setAppShape('rounded')" data-val="rounded" class="shape-opt custom-btn border p-2.5 flex flex-col items-center gap-1 text-xs font-bold">Мягкие</button>
+                        <button onclick="setAppShape('pill')" data-val="pill" class="shape-opt custom-btn border p-2.5 flex flex-col items-center gap-1 text-xs font-bold">Капсула</button>
+                        <button onclick="setAppShape('sharp')" data-val="sharp" class="shape-opt custom-btn border p-2.5 flex flex-col items-center gap-1 text-xs font-bold">Строгие</button>
                     </div>
                 </div>
 
-                <!-- 4. Шрифт -->
+                <!-- 4. Шрифты -->
                 <div>
                     <label class="block text-xs font-extrabold uppercase tracking-wider theme-text-muted mb-2.5">4. Шрифт интерфейса</label>
                     <select id="font-select" onchange="setAppFont(this.value)" class="w-full custom-badge border theme-surface-alt px-3 py-2.5 text-sm font-semibold focus:outline-none">
@@ -640,20 +685,24 @@
                         <option value="'Montserrat', sans-serif">Montserrat (Геометричный)</option>
                         <option value="'Poppins', sans-serif">Poppins (Плавный)</option>
                         <option value="'JetBrains Mono', monospace">JetBrains Mono (Код)</option>
+                        <option value="'Cinzel', serif">Cinzel (Элегантный)</option>
+                        <option value="'Pacifico', cursive">Pacifico (Рукописный)</option>
                     </select>
                 </div>
 
-                <!-- 5. Фоновый паттерн -->
+                <!-- 5. Фоновые паттерны -->
                 <div>
                     <label class="block text-xs font-extrabold uppercase tracking-wider theme-text-muted mb-2.5">5. Фоновый паттерн текстуры</label>
-                    <div class="grid grid-cols-3 gap-2" id="pattern-selector">
+                    <div class="grid grid-cols-5 gap-2" id="pattern-selector">
                         <button onclick="setAppPattern('none')" data-val="none" class="pattern-opt custom-btn border p-2 text-xs font-bold">Чистый</button>
                         <button onclick="setAppPattern('dots')" data-val="dots" class="pattern-opt custom-btn border p-2 text-xs font-bold">Точки</button>
                         <button onclick="setAppPattern('grid')" data-val="grid" class="pattern-opt custom-btn border p-2 text-xs font-bold">Сетка</button>
+                        <button onclick="setAppPattern('diagonal')" data-val="diagonal" class="pattern-opt custom-btn border p-2 text-xs font-bold">Линии</button>
+                        <button onclick="setAppPattern('waves')" data-val="waves" class="pattern-opt custom-btn border p-2 text-xs font-bold">Волны</button>
                     </div>
                 </div>
 
-                <!-- 6. Прозрачность и размытие -->
+                <!-- 6. Прозрачность и Размытие -->
                 <div class="space-y-3 pt-2 border-t border-slate-500/20">
                     <div>
                         <div class="flex justify-between text-xs font-bold mb-1">
@@ -685,7 +734,10 @@
 
     <!-- ПЛАВАЮЩАЯ КНОПКА -->
     <div id="floating-actions" class="fixed bottom-5 right-4 z-40 flex flex-col gap-2.5 transition-all duration-300 translate-y-20 opacity-0 pointer-events-none">
-        <button onclick="openGameModal()" title="Игра" class="custom-btn bg-amber-600 hover:bg-amber-500 text-white w-12 h-12 shadow-lg flex items-center justify-center text-xl border border-white/20">
+        <button onclick="openChatModal()" title="Чат" class="custom-btn bg-emerald-600 hover:bg-emerald-500 text-white w-12 h-12 shadow-lg flex items-center justify-center text-xl border border-white/20">
+            💬
+        </button>
+        <button onclick="openGameModal()" title="Тетрис" class="custom-btn bg-indigo-600 hover:bg-indigo-500 text-white w-12 h-12 shadow-lg flex items-center justify-center text-xl border border-white/20">
             🎮
         </button>
         <button onclick="scrollToActiveOrTop()" title="Наверх" class="custom-btn accent-bg w-12 h-12 shadow-lg flex items-center justify-center text-xl border border-white/20">
@@ -696,14 +748,129 @@
     <!-- ПОДВАЛ -->
     <footer class="theme-surface border-t py-5 px-4 text-center text-xs theme-text-muted mt-auto">
         <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
-            <p class="font-bold">Расписание 7г класса • Translucent Glass Edition ❤️</p>
+            <p class="font-bold">Расписание 7г класса • Облачный чат и Тетрис ❤️</p>
             <div class="flex items-center gap-3">
-                <span>Старт: 12:20 (Вт, Чт — 13:10)</span>
+                <span>Столовая: 08:00 – 16:25</span>
             </div>
         </div>
     </footer>
 
     <script>
+        /* --- FIREBASE CONFIG --- */
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-MockKeyFor7GClassScheduleApp12345",
+            authDomain: "class7g-schedule.firebaseapp.com",
+            databaseURL: "https://class7g-schedule-default-rtdb.firebaseio.com",
+            projectId: "class7g-schedule",
+            storageBucket: "class7g-schedule.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abcdef"
+        };
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        // Проффилтр мата
+        const BAD_WORDS = ['сука', 'блять', 'блять', 'хуй', 'пизда', 'ебать', 'ебал', 'залупа', 'мразь', 'шлюха', 'сучка', 'гандон', 'чмо', 'урод', 'fuck', 'shit', 'bitch', 'cunt', 'whore', 'asshole'];
+        function containsProfanity(text) {
+            const lower = text.toLowerCase();
+            return BAD_WORDS.some(word => lower.includes(word));
+        }
+
+        let isChatAuthenticated = localStorage.getItem('7g_chat_auth_100x') === 'true';
+        let currentNickname = localStorage.getItem('7g_nickname_100x') || ('Ученик ' + Math.floor(Math.random() * 89 + 10));
+
+        function openChatModal() {
+            document.getElementById('chat-modal').classList.remove('hidden');
+            if (isChatAuthenticated) {
+                document.getElementById('chat-auth-view').classList.add('hidden');
+                document.getElementById('chat-main-view').classList.remove('hidden');
+                document.getElementById('chat-nickname').value = currentNickname;
+                listenToChatMessages();
+            } else {
+                document.getElementById('chat-auth-view').classList.remove('hidden');
+                document.getElementById('chat-main-view').classList.add('hidden');
+            }
+        }
+
+        function closeChatModal() {
+            document.getElementById('chat-modal').classList.add('hidden');
+        }
+        document.getElementById('chat-modal').addEventListener('click', (e) => { if (e.target.id === 'chat-modal') closeChatModal(); });
+
+        function verifyChatPin() {
+            const pin = document.getElementById('chat-pin-input').value.trim();
+            if (pin === '107') {
+                isChatAuthenticated = true;
+                localStorage.setItem('7g_chat_auth_100x', 'true');
+                document.getElementById('chat-pin-error').classList.add('hidden');
+                document.getElementById('chat-auth-view').classList.add('hidden');
+                document.getElementById('chat-main-view').classList.remove('hidden');
+                document.getElementById('chat-nickname').value = currentNickname;
+                listenToChatMessages();
+            } else {
+                document.getElementById('chat-pin-error').classList.remove('hidden');
+            }
+        }
+
+        function updateNickname(val) {
+            currentNickname = val.trim() || 'Ученик 7Г';
+            localStorage.setItem('7g_nickname_100x', currentNickname);
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            if (containsProfanity(text)) {
+                alert('⚠️ Сообщение заблокировано системой за ненормативную лексику!');
+                return;
+            }
+
+            const msgData = {
+                sender: currentNickname,
+                text: text,
+                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            db.ref('messages').push(msgData);
+            input.value = '';
+        }
+
+        function listenToChatMessages() {
+            const container = document.getElementById('chat-messages-container');
+            db.ref('messages').limitToLast(50).on('value', (snapshot) => {
+                container.innerHTML = '';
+                const data = snapshot.val();
+                if (!data) {
+                    container.innerHTML = `<div class="text-center text-xs theme-text-muted py-6">В чате пока нет сообщений. Напишите первыми! 👋</div>`;
+                    return;
+                }
+                Object.values(data).forEach(msg => {
+                    const isMe = msg.sender === currentNickname;
+                    const div = document.createElement('div');
+                    div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+                    div.innerHTML = `
+                        <div class="text-[10px] font-bold theme-text-muted mb-0.5 px-1">${escapeHtml(msg.sender)} • ${msg.time}</div>
+                        <div class="max-w-[85%] px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-medium ${isMe ? 'accent-bg shadow-sm' : 'theme-surface border'} break-words">
+                            ${escapeHtml(msg.text)}
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+                container.scrollTop = container.scrollHeight;
+            });
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
         const ACCENT_PALETTES = {
             indigo:  { accent: '#4f46e5', light: '#6366f1', dark: '#3730a3', soft: 'rgba(79, 70, 229, 0.18)', glow: 'rgba(79, 70, 229, 0.4)', gradFrom: 'rgba(79, 70, 229, 0.85)', gradVia: 'rgba(67, 56, 202, 0.85)', gradTo: 'rgba(109, 40, 217, 0.85)' },
             emerald: { accent: '#059669', light: '#10b981', dark: '#065f46', soft: 'rgba(16, 185, 129, 0.18)', glow: 'rgba(16, 185, 129, 0.4)', gradFrom: 'rgba(5, 150, 105, 0.85)', gradVia: 'rgba(4, 120, 87, 0.85)', gradTo: 'rgba(15, 118, 110, 0.85)' },
@@ -716,18 +883,23 @@
             fuchsia: { accent: '#c026d3', light: '#d946ef', dark: '#86198f', soft: 'rgba(217, 70, 239, 0.18)', glow: 'rgba(217, 70, 239, 0.4)', gradFrom: 'rgba(192, 38, 211, 0.85)', gradVia: 'rgba(162, 28, 175, 0.85)', gradTo: 'rgba(134, 25, 143, 0.85)' },
             orange:  { accent: '#ea580c', light: '#f97316', dark: '#c2410c', soft: 'rgba(249, 115, 22, 0.18)', glow: 'rgba(249, 115, 22, 0.4)', gradFrom: 'rgba(234, 88, 12, 0.85)', gradVia: 'rgba(194, 65, 12, 0.85)', gradTo: 'rgba(154, 52, 18, 0.85)' },
             lime:    { accent: '#65a30d', light: '#84cc16', dark: '#4d7c0f', soft: 'rgba(132, 204, 22, 0.18)', glow: 'rgba(132, 204, 22, 0.4)', gradFrom: 'rgba(101, 163, 13, 0.85)', gradVia: 'rgba(77, 124, 15, 0.85)', gradTo: 'rgba(63, 98, 18, 0.85)' },
-            ruby:    { accent: '#dc2626', light: '#ef4444', dark: '#991b1b', soft: 'rgba(239, 68, 68, 0.18)', glow: 'rgba(239, 68, 68, 0.4)', gradFrom: 'rgba(220, 38, 38, 0.85)', gradVia: 'rgba(185, 28, 28, 0.85)', gradTo: 'rgba(153, 27, 27, 0.85)' }
+            ruby:    { accent: '#dc2626', light: '#ef4444', dark: '#991b1b', soft: 'rgba(239, 68, 68, 0.18)', glow: 'rgba(239, 68, 68, 0.4)', gradFrom: 'rgba(220, 38, 38, 0.85)', gradVia: 'rgba(185, 28, 28, 0.85)', gradTo: 'rgba(153, 27, 27, 0.85)' },
+            gold:    { accent: '#eab308', light: '#facc15', dark: '#a16207', soft: 'rgba(234, 179, 8, 0.18)', glow: 'rgba(234, 179, 8, 0.4)', gradFrom: 'rgba(234, 179, 8, 0.85)', gradVia: 'rgba(202, 138, 4, 0.85)', gradTo: 'rgba(161, 98, 7, 0.85)' },
+            mint:    { accent: '#2dd4bf', light: '#5eead4', dark: '#0f766e', soft: 'rgba(45, 212, 191, 0.18)', glow: 'rgba(45, 212, 191, 0.4)', gradFrom: 'rgba(45, 212, 191, 0.85)', gradVia: 'rgba(20, 184, 166, 0.85)', gradTo: 'rgba(15, 118, 110, 0.85)' },
+            lavender:{ accent: '#818cf8', light: '#a5b4fc', dark: '#4338ca', soft: 'rgba(129, 140, 248, 0.18)', glow: 'rgba(129, 140, 248, 0.4)', gradFrom: 'rgba(129, 140, 248, 0.85)', gradVia: 'rgba(99, 102, 241, 0.85)', gradTo: 'rgba(67, 56, 202, 0.85)' },
+            coral:   { accent: '#fb7185', light: '#fda4af', dark: '#be123c', soft: 'rgba(251, 113, 133, 0.18)', glow: 'rgba(251, 113, 133, 0.4)', gradFrom: 'rgba(251, 113, 133, 0.85)', gradVia: 'rgba(244, 63, 94, 0.85)', gradTo: 'rgba(190, 18, 60, 0.85)' }
         };
 
         let userConfig = {
-            theme: localStorage.getItem('7g_theme_ex') || 'dark',
-            accent: localStorage.getItem('7g_accent_ex') || 'indigo',
-            shape: localStorage.getItem('7g_shape_ex') || 'rounded',
-            font: localStorage.getItem('7g_font_ex') || "'Inter', sans-serif",
-            pattern: localStorage.getItem('7g_pattern_ex') || 'none',
-            opacity: localStorage.getItem('7g_opacity_ex') || '0.65',
-            blur: localStorage.getItem('7g_blur_ex') || '20px',
-            lowPerf: localStorage.getItem('7g_low_perf') === 'true'
+            theme: localStorage.getItem('7g_theme_100x') || 'dark',
+            accent: localStorage.getItem('7g_accent_100x') || 'indigo',
+            shape: localStorage.getItem('7g_shape_100x') || 'rounded',
+            font: localStorage.getItem('7g_font_100x') || "'Inter', sans-serif",
+            pattern: localStorage.getItem('7g_pattern_100x') || 'none',
+            opacity: localStorage.getItem('7g_opacity_100x') || '0.65',
+            blur: localStorage.getItem('7g_blur_100x') || '20px',
+            lowPerf: localStorage.getItem('7g_low_perf_100x') === 'true',
+            timerFormat: localStorage.getItem('7g_timer_format_100x') || 'full'
         };
 
         const SHAPE_PRESETS = {
@@ -753,7 +925,7 @@
                 document.getElementById('low-perf-toggle').checked = false;
             }
 
-            root.style.setProperty('--font-family', userConfig.font);
+            root.style.setProperty('--custom-font', userConfig.font);
             root.style.setProperty('--card-opacity', userConfig.opacity);
             root.style.setProperty('--blur-strength', userConfig.blur);
 
@@ -777,7 +949,7 @@
                 btn.className = `theme-opt custom-btn border p-3 flex flex-col items-center gap-1.5 text-xs font-bold ${btn.getAttribute('data-val') === userConfig.theme ? 'accent-bg border-transparent shadow-lg' : 'theme-surface-alt'}`;
             });
             document.querySelectorAll('.color-opt').forEach(btn => {
-                btn.className = `color-opt custom-btn border p-2.5 flex items-center gap-2 text-xs font-bold ${btn.getAttribute('data-val') === userConfig.accent ? 'ring-2 ring-offset-1 ring-current accent-soft-bg' : 'theme-surface-alt'}`;
+                btn.className = `color-opt custom-btn border p-2 flex items-center gap-2 text-xs font-bold ${btn.getAttribute('data-val') === userConfig.accent ? 'ring-2 ring-offset-1 ring-current accent-soft-bg' : 'theme-surface-alt'}`;
             });
             document.querySelectorAll('.shape-opt').forEach(btn => {
                 btn.className = `shape-opt custom-btn border p-2.5 flex flex-col items-center gap-1 text-xs font-bold ${btn.getAttribute('data-val') === userConfig.shape ? 'accent-bg border-transparent shadow-lg' : 'theme-surface-alt'}`;
@@ -787,6 +959,7 @@
             });
 
             document.getElementById('font-select').value = userConfig.font;
+            document.getElementById('timer-format-select').value = userConfig.timerFormat;
             document.getElementById('opacity-val').innerText = userConfig.opacity;
             document.getElementById('blur-val').innerText = userConfig.blur;
 
@@ -794,17 +967,18 @@
             renderLessonsForSelectedDay(false);
         }
 
-        function setAppTheme(t) { userConfig.theme = t; localStorage.setItem('7g_theme_ex', t); applyCustomizations(); }
-        function setAppAccent(a) { userConfig.accent = a; localStorage.setItem('7g_accent_ex', a); applyCustomizations(); }
-        function setAppShape(s) { userConfig.shape = s; localStorage.setItem('7g_shape_ex', s); applyCustomizations(); }
-        function setAppFont(f) { userConfig.font = f; localStorage.setItem('7g_font_ex', f); applyCustomizations(); }
-        function setAppPattern(p) { userConfig.pattern = p; localStorage.setItem('7g_pattern_ex', p); applyCustomizations(); }
-        function setAppOpacity(o) { userConfig.opacity = o; localStorage.setItem('7g_opacity_ex', o); document.getElementById('opacity-val').innerText = o; applyCustomizations(); }
-        function setAppBlur(b) { userConfig.blur = b + 'px'; localStorage.setItem('7g_blur_ex', userConfig.blur); document.getElementById('blur-val').innerText = userConfig.blur; applyCustomizations(); }
-        function toggleLowPerf(checked) { userConfig.lowPerf = checked; localStorage.setItem('7g_low_perf', checked ? 'true' : 'false'); applyCustomizations(); }
+        function setAppTheme(t) { userConfig.theme = t; localStorage.setItem('7g_theme_100x', t); applyCustomizations(); }
+        function setAppAccent(a) { userConfig.accent = a; localStorage.setItem('7g_accent_100x', a); applyCustomizations(); }
+        function setAppShape(s) { userConfig.shape = s; localStorage.setItem('7g_shape_100x', s); applyCustomizations(); }
+        function setAppFont(f) { userConfig.font = f; localStorage.setItem('7g_font_100x', f); applyCustomizations(); }
+        function setAppPattern(p) { userConfig.pattern = p; localStorage.setItem('7g_pattern_100x', p); applyCustomizations(); }
+        function setTimerFormat(tf) { userConfig.timerFormat = tf; localStorage.setItem('7g_timer_format_100x', tf); applyCustomizations(); }
+        function setAppOpacity(o) { userConfig.opacity = o; localStorage.setItem('7g_opacity_100x', o); document.getElementById('opacity-val').innerText = o; applyCustomizations(); }
+        function setAppBlur(b) { userConfig.blur = b + 'px'; localStorage.setItem('7g_blur_100x', userConfig.blur); document.getElementById('blur-val').innerText = userConfig.blur; applyCustomizations(); }
+        function toggleLowPerf(checked) { userConfig.lowPerf = checked; localStorage.setItem('7g_low_perf_100x', checked ? 'true' : 'false'); applyCustomizations(); }
 
         function resetCustomizations() {
-            userConfig = { theme: 'dark', accent: 'indigo', shape: 'rounded', font: "'Inter', sans-serif", pattern: 'none', opacity: '0.65', blur: '20px', lowPerf: false };
+            userConfig = { theme: 'dark', accent: 'indigo', shape: 'rounded', font: "'Inter', sans-serif", pattern: 'none', opacity: '0.65', blur: '20px', lowPerf: false, timerFormat: 'full' };
             localStorage.clear();
             applyCustomizations();
         }
@@ -813,159 +987,204 @@
         function closeCustomizer() { document.getElementById('customizer-modal').classList.add('hidden'); }
         document.getElementById('customizer-modal').addEventListener('click', (e) => { if (e.target.id === 'customizer-modal') closeCustomizer(); });
 
-        /* --- УЛУЧШЕННАЯ ИГРА (АРКАДНЫЙ РАННЕР) --- */
-        let gameInterval = null;
-        let player = { x: 40, y: 0, vy: 0, gravity: 0.65, jump: -11.5, size: 30, grounded: true };
-        let obstaclesList = [];
-        let score = 0;
-        let highScore = parseInt(localStorage.getItem('7g_arcade_highscore') || '0', 10);
-        let gameActive = false;
-        let gameSpeed = 5;
+        /* --- ИГРА ТЕТРИС --- */
+        const COLS = 10;
+        const ROWS = 20;
+        const BLOCK_SIZE = 20;
+        let tetrisBoard = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+        let tetrisScore = 0;
+        let tetrisLines = 0;
+        let tetrisHighScore = parseInt(localStorage.getItem('7g_tetris_highscore') || '0', 10);
+        let tetrisInterval = null;
+        let isTetrisActive = false;
+
+        const SHAPES = [
+            [],
+            [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], // I
+            [[2,0,0],[2,2,2],[0,0,0]], // J
+            [[0,0,3],[3,3,3],[0,0,0]], // L
+            [[4,4],[4,4]], // O
+            [[0,5,5],[5,5,0],[0,0,0]], // S
+            [[0,6,0],[6,6,6],[0,0,0]], // T
+            [[7,7,0],[0,7,7],[0,0,0]]  // Z
+        ];
+
+        const COLORS = [
+            null,
+            '#06b6d4', // I - Cyan
+            '#3b82f6', // J - Blue
+            '#f97316', // L - Orange
+            '#eab308', // O - Yellow
+            '#10b981', // S - Emerald
+            '#a855f7', // T - Purple
+            '#ef4444'  // Z - Red
+        ];
+
+        let currentPiece = {
+            shape: SHAPES[1],
+            color: 1,
+            x: 3,
+            y: 0
+        };
 
         function openGameModal() {
             document.getElementById('game-modal').classList.remove('hidden');
-            document.getElementById('game-highscore').innerText = highScore;
-            initCanvas();
-            resetGameScene();
+            document.getElementById('tetris-highscore').innerText = tetrisHighScore;
+            startTetrisGame();
         }
 
         function closeGameModal() {
             document.getElementById('game-modal').classList.add('hidden');
-            gameActive = false;
-            if (gameInterval) clearInterval(gameInterval);
+            isTetrisActive = false;
+            if (tetrisInterval) clearInterval(tetrisInterval);
         }
         document.getElementById('game-modal').addEventListener('click', (e) => { if (e.target.id === 'game-modal') closeGameModal(); });
 
-        function initCanvas() {
-            const canvas = document.getElementById('gameCanvas');
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
+        function startTetrisGame() {
+            tetrisBoard = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+            tetrisScore = 0;
+            tetrisLines = 0;
+            document.getElementById('tetris-score').innerText = tetrisScore;
+            document.getElementById('tetris-lines').innerText = tetrisLines;
+            spawnPiece();
+            isTetrisActive = true;
+            if (tetrisInterval) clearInterval(tetrisInterval);
+            tetrisInterval = setInterval(tetrisTick, 500);
+            drawTetris();
         }
 
-        function resetGameScene() {
-            const canvas = document.getElementById('gameCanvas');
-            player.y = canvas.height - 40 - player.size;
-            player.vy = 0;
-            player.grounded = true;
-            obstaclesList = [];
-            score = 0;
-            gameSpeed = 5;
-            document.getElementById('game-score').innerText = '0';
-            document.getElementById('game-overlay').classList.remove('hidden');
-            document.getElementById('game-msg').innerText = "Нажмите ПРОБЕЛ или тапните экран, чтобы начать!";
-            drawScene();
+        function spawnPiece() {
+            const rand = Math.floor(Math.random() * 7) + 1;
+            currentPiece.shape = SHAPES[rand];
+            currentPiece.color = rand;
+            currentPiece.x = Math.floor(COLS / 2) - Math.floor(currentPiece.shape[0].length / 2);
+            currentPiece.y = 0;
+            if (checkCollision(0, 0, currentPiece.shape)) {
+                isTetrisActive = false;
+                clearInterval(tetrisInterval);
+            }
         }
 
-        function startArcadeGame() {
-            document.getElementById('game-overlay').classList.add('hidden');
-            gameActive = true;
-            score = 0;
-            gameSpeed = 5;
-            obstaclesList = [];
-            if (gameInterval) clearInterval(gameInterval);
-
-            const canvas = document.getElementById('gameCanvas');
-
-            gameInterval = setInterval(() => {
-                if (!gameActive) return;
-
-                // Увеличение скорости со временем
-                gameSpeed += 0.0015;
-
-                // Физика игрока
-                player.vy += player.gravity;
-                player.y += player.vy;
-                const groundY = canvas.height - 40 - player.size;
-                if (player.y >= groundY) {
-                    player.y = groundY;
-                    player.vy = 0;
-                    player.grounded = true;
+        function checkCollision(offsetX, offsetY, shape) {
+            for (let r = 0; r < shape.length; r++) {
+                for (let c = 0; c < shape[r].length; c++) {
+                    if (shape[r][c]) {
+                        let newX = currentPiece.x + c + offsetX;
+                        let newY = currentPiece.y + r + offsetY;
+                        if (newX < 0 || newX >= COLS || newY >= ROWS) return true;
+                        if (newY >= 0 && tetrisBoard[newY][newX]) return true;
+                    }
                 }
+            }
+            return false;
+        }
 
-                // Спавн препятствий
-                if (Math.random() < 0.02 && (obstaclesList.length === 0 || obstaclesList[obstaclesList.length - 1].x < canvas.width - 180)) {
-                    const h = Math.floor(Math.random() * 30) + 25;
-                    const w = Math.floor(Math.random() * 15) + 20;
-                    obstaclesList.push({ x: canvas.width, w: w, h: h, speed: gameSpeed });
-                }
-
-                // Движение препятствий
-                for (let i = obstaclesList.length - 1; i >= 0; i--) {
-                    obstaclesList[i].x -= gameSpeed;
-                    if (obstaclesList[i].x + obstaclesList[i].w < 0) {
-                        obstaclesList.splice(i, 1);
-                        score += 15;
-                        document.getElementById('game-score').innerText = score;
-                        if (score > highScore) {
-                            highScore = score;
-                            localStorage.setItem('7g_arcade_highscore', highScore);
-                            document.getElementById('game-highscore').innerText = highScore;
+        function mergePiece() {
+            currentPiece.shape.forEach((row, r) => {
+                row.forEach((val, c) => {
+                    if (val) {
+                        if (currentPiece.y + r >= 0) {
+                            tetrisBoard[currentPiece.y + r][currentPiece.x + c] = currentPiece.color;
                         }
                     }
-
-                    // Коллизия (столкновение)
-                    if (
-                        player.x < obstaclesList[i].x + obstaclesList[i].w &&
-                        player.x + player.size > obstaclesList[i].x &&
-                        player.y < canvas.height - 40 &&
-                        player.y + player.size > canvas.height - 40 - obstaclesList[i].h
-                    ) {
-                        gameActive = false;
-                        clearInterval(gameInterval);
-                        document.getElementById('game-overlay').classList.remove('hidden');
-                        document.getElementById('game-msg').innerText = `💥 Бабах! Счёт: ${score}`;
-                    }
-                }
-
-                drawScene();
-            }, 1000 / 60);
+                });
+            });
         }
 
-        function playerJump() {
-            if (!gameActive) return;
-            if (player.grounded) {
-                player.vy = player.jump;
-                player.grounded = false;
+        function clearLines() {
+            let linesCleared = 0;
+            outer: for (let r = ROWS - 1; r >= 0; r--) {
+                for (let c = 0; c < COLS; c++) {
+                    if (!tetrisBoard[r][c]) continue outer;
+                }
+                const row = tetrisBoard.splice(r, 1)[0].fill(0);
+                tetrisBoard.unshift(row);
+                linesCleared++;
+                r++;
+            }
+            if (linesCleared > 0) {
+                tetrisLines += linesCleared;
+                tetrisScore += linesCleared * 100 * linesCleared;
+                document.getElementById('tetris-score').innerText = tetrisScore;
+                document.getElementById('tetris-lines').innerText = tetrisLines;
+                if (tetrisScore > tetrisHighScore) {
+                    tetrisHighScore = tetrisScore;
+                    localStorage.setItem('7g_tetris_highscore', tetrisHighScore);
+                    document.getElementById('tetris-highscore').innerText = tetrisHighScore;
+                }
+            }
+        }
+
+        function tetrisTick() {
+            if (!isTetrisActive) return;
+            if (!checkCollision(0, 1, currentPiece.shape)) {
+                currentPiece.y++;
+            } else {
+                mergePiece();
+                clearLines();
+                spawnPiece();
+            }
+            drawTetris();
+        }
+
+        function tetrisMove(dir) {
+            if (!isTetrisActive) return;
+            if (!checkCollision(dir, 0, currentPiece.shape)) {
+                currentPiece.x += dir;
+                drawTetris();
+            }
+        }
+
+        function tetrisDrop() {
+            if (!isTetrisActive) return;
+            while (!checkCollision(0, 1, currentPiece.shape)) {
+                currentPiece.y++;
+            }
+            mergePiece();
+            clearLines();
+            spawnPiece();
+            drawTetris();
+        }
+
+        function tetrisRotate() {
+            if (!isTetrisActive) return;
+            const rotated = currentPiece.shape[0].map((val, index) => currentPiece.shape.map(row => row[index]).reverse());
+            if (!checkCollision(0, 0, rotated)) {
+                currentPiece.shape = rotated;
+                drawTetris();
             }
         }
 
         window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && !document.getElementById('game-modal').classList.contains('hidden')) {
-                e.preventDefault();
-                if (!gameActive) startArcadeGame();
-                else playerJump();
-            }
+            if (document.getElementById('game-modal').classList.contains('hidden')) return;
+            if (e.code === 'ArrowLeft') { e.preventDefault(); tetrisMove(-1); }
+            else if (e.code === 'ArrowRight') { e.preventDefault(); tetrisMove(1); }
+            else if (e.code === 'ArrowDown') { e.preventDefault(); tetrisTick(); }
+            else if (e.code === 'ArrowUp') { e.preventDefault(); tetrisRotate(); }
+            else if (e.code === 'Space') { e.preventDefault(); tetrisDrop(); }
         });
 
-        document.getElementById('gameCanvas').addEventListener('click', () => {
-            if (!gameActive) startArcadeGame();
-            else playerJump();
-        });
-
-        function drawScene() {
-            const canvas = document.getElementById('gameCanvas');
+        function drawTetris() {
+            const canvas = document.getElementById('tetrisCanvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Линия земли
-            ctx.strokeStyle = '#6366f1';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(0, canvas.height - 40);
-            ctx.lineTo(canvas.width, canvas.height - 40);
-            ctx.stroke();
+            tetrisBoard.forEach((row, r) => {
+                row.forEach((val, c) => {
+                    if (val) {
+                        ctx.fillStyle = COLORS[val];
+                        ctx.fillRect(c * BLOCK_SIZE, r * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+                    }
+                });
+            });
 
-            // Персонаж
-            ctx.fillStyle = '#6366f1';
-            ctx.fillRect(player.x, player.y, player.size, player.size);
-            // Глаз персонажа
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(player.x + 18, player.y + 8, 6, 6);
-
-            // Препятствия
-            ctx.fillStyle = '#f59e0b';
-            obstaclesList.forEach(obs => {
-                ctx.fillRect(obs.x, canvas.height - 40 - obs.h, obs.w, obs.h);
+            currentPiece.shape.forEach((row, r) => {
+                row.forEach((val, c) => {
+                    if (val) {
+                        ctx.fillStyle = COLORS[currentPiece.color];
+                        ctx.fillRect((currentPiece.x + c) * BLOCK_SIZE, (currentPiece.y + r) * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+                    }
+                });
             });
         }
 
@@ -980,7 +1199,7 @@
         };
 
         const DAY_NAMES = { 1: "Понедельник", 2: "Вторник", 3: "Среда", 4: "Четверг", 5: "Пятница", 6: "Суббота", 0: "Воскресенье" };
-        let thursdayMode = localStorage.getItem('schedule_7g_thu_mode') || 'start1310';
+        let thursdayMode = localStorage.getItem('schedule_7g_thu_mode_100x') || 'start1310';
 
         const SCHEDULE_DATA = {
             1: [
@@ -1042,7 +1261,7 @@
 
         function setThursdayMode(mode) {
             thursdayMode = mode;
-            localStorage.setItem('schedule_7g_thu_mode', mode);
+            localStorage.setItem('schedule_7g_thu_mode_100x', mode);
             renderLessonsForSelectedDay(true);
             updateLiveTimer();
         }
@@ -1050,33 +1269,59 @@
         let selectedDay = 1;
         let isSimulated = false;
         let simDay = 1;
-        let simSecondsOffset = 0;
+        let simMsOffset = 0;
+        let lastRealTimestamp = performance.now();
 
-        function timeToSeconds(timeStr) {
+        function timeToMs(timeStr) {
             const [h, m] = timeStr.split(':').map(Number);
-            return h * 3600 + m * 60;
+            return (h * 3600 + m * 60) * 1000;
         }
 
-        function formatDuration(totalSeconds) {
-            if (totalSeconds < 0) totalSeconds = 0;
-            const h = Math.floor(totalSeconds / 3600);
-            const m = Math.floor((totalSeconds % 3600) / 60);
-            const s = Math.floor(totalSeconds % 60);
-            const pad = (n) => String(n).padStart(2, '0');
-            return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+        function formatDurationMs(totalMs) {
+            if (totalMs < 0) totalMs = 0;
+            const h = Math.floor(totalMs / 3600000);
+            const m = Math.floor((totalMs % 3600000) / 60000);
+            const s = Math.floor((totalMs % 60000) / 1000);
+            const ms = Math.floor(totalMs % 1000);
+            const pad = (n, width = 2) => String(n).padStart(width, '0');
+
+            const tf = userConfig.timerFormat;
+            if (tf === 'secs_ms') {
+                const totalSecs = Math.floor(totalMs / 1000);
+                return `${totalSecs}.${pad(ms, 3)}с`;
+            }
+            if (tf === 'secs_only') {
+                const totalSecs = Math.floor(totalMs / 1000);
+                return `${totalSecs} сек`;
+            }
+            if (tf === 'mins_only') {
+                const totalMins = Math.floor(totalMs / 60000);
+                return `${totalMins} мин`;
+            }
+            if (tf === 'hours_only') {
+                return `${h} ч`;
+            }
+            if (tf === 'compact') {
+                return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+            }
+            return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}.${pad(ms, 3)}` : `${pad(m)}:${pad(s)}.${pad(ms, 3)}`;
         }
 
         function getNowState() {
             const now = new Date();
             if (!isSimulated) {
-                return { dateObj: now, dayOfWeek: now.getDay(), currentSeconds: now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds(), timeString: now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) };
+                const totalMs = (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) * 1000 + now.getMilliseconds();
+                const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(now.getMilliseconds()).padStart(3, '0')}`;
+                return { dateObj: now, dayOfWeek: now.getDay(), currentMs: totalMs, timeString };
             } else {
-                simSecondsOffset += 1;
-                const h = Math.floor(simSecondsOffset / 3600) % 24;
-                const m = Math.floor((simSecondsOffset % 3600) / 60);
-                const s = Math.floor(simSecondsOffset % 60);
-                const pad = (n) => String(n).padStart(2, '0');
-                return { dateObj: now, dayOfWeek: simDay, currentSeconds: simSecondsOffset, timeString: `${pad(h)}:${pad(m)}:${pad(s)}` };
+                const currentMs = simMsOffset;
+                const totalSec = Math.floor(currentMs / 1000);
+                const h = Math.floor(totalSec / 3600) % 24;
+                const m = Math.floor((totalSec % 3600) / 60);
+                const s = Math.floor(totalSec % 60);
+                const ms = Math.floor(currentMs % 1000);
+                const pad = (n, width = 2) => String(n).padStart(width, '0');
+                return { dateObj: now, dayOfWeek: simDay, currentMs, timeString: `${pad(h)}:${pad(m)}:${pad(s)}.${pad(ms, 3)}` };
             }
         }
 
@@ -1131,17 +1376,17 @@
             document.getElementById('day-hours-badge').innerHTML = `<i class="ph-bold ph-clock accent-text"></i> ${BELL_SCHEDULE[firstLesson.num].start} – ${BELL_SCHEDULE[lastLesson.num].end}`;
             document.getElementById('day-count-badge').innerText = `${activeLessons.length} уроков`;
 
-            const { dayOfWeek, currentSeconds } = getNowState();
+            const { dayOfWeek, currentMs } = getNowState();
             const isTodaySelected = (selectedDay === dayOfWeek);
             const container = document.getElementById('lessons-list');
             container.innerHTML = '';
 
             lessons.forEach((item, index) => {
                 const bell = BELL_SCHEDULE[item.num];
-                const startSec = timeToSeconds(bell.start);
-                const endSec = timeToSeconds(bell.end);
-                const isCurrentLesson = isTodaySelected && !item.empty && !item.isSkippedMain && currentSeconds >= startSec && currentSeconds < endSec;
-                const isPastLesson = isTodaySelected && currentSeconds >= endSec;
+                const startMs = timeToMs(bell.start);
+                const endMs = timeToMs(bell.end);
+                const isCurrentLesson = isTodaySelected && !item.empty && !item.isSkippedMain && currentMs >= startMs && currentMs < endMs;
+                const isPastLesson = isTodaySelected && currentMs >= endMs;
                 const delayStyle = (animate && !userConfig.lowPerf) ? `animation-delay: ${index * 40}ms;` : '';
 
                 if (item.empty) {
@@ -1193,23 +1438,41 @@
         }
 
         function updateLiveTimer() {
-            const { dateObj, dayOfWeek, currentSeconds, timeString } = getNowState();
+            if (isSimulated) {
+                const nowPerf = performance.now();
+                simMsOffset += (nowPerf - lastRealTimestamp);
+                lastRealTimestamp = nowPerf;
+            } else {
+                lastRealTimestamp = performance.now();
+            }
+
+            const { dateObj, dayOfWeek, currentMs, timeString } = getNowState();
             document.getElementById('live-clock').innerText = timeString;
             document.getElementById('live-date').innerText = `${DAY_NAMES[dayOfWeek]}, ${dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}`;
 
-            // Таймер столовой до 16:25
-            const canteenCloseSec = timeToSeconds("16:25");
+            const canteenOpenMs = timeToMs("08:00");
+            const canteenCloseMs = timeToMs("16:25");
             const canteenTimerEl = document.getElementById('canteen-timer');
             const canteenLabelEl = document.getElementById('canteen-status-label');
-            if (dayOfWeek === 0 || dayOfWeek === 6 || currentSeconds >= canteenCloseSec) {
-                canteenLabelEl.innerText = "Столовая";
+
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                canteenLabelEl.innerText = "Столовая (Выходной)";
                 canteenTimerEl.innerText = "ЗАКРЫТА";
-                canteenTimerEl.className = "text-lg sm:text-xl font-mono-num font-extrabold text-red-400 tracking-wider mt-0.5";
+                canteenTimerEl.className = "text-sm sm:text-base font-mono-num font-extrabold text-red-400 tracking-wider mt-0.5";
+            } else if (currentMs < canteenOpenMs) {
+                const remOpen = canteenOpenMs - currentMs;
+                canteenLabelEl.innerText = "До открытия (08:00)";
+                canteenTimerEl.innerText = formatDurationMs(remOpen);
+                canteenTimerEl.className = "text-sm sm:text-base font-mono-num font-extrabold text-cyan-300 tracking-wider mt-0.5";
+            } else if (currentMs >= canteenOpenMs && currentMs <= canteenCloseMs) {
+                const remClose = canteenCloseMs - currentMs;
+                canteenLabelEl.innerText = "Открыта! До закрытия";
+                canteenTimerEl.innerText = formatDurationMs(remClose);
+                canteenTimerEl.className = "text-sm sm:text-base font-mono-num font-extrabold text-amber-300 tracking-wider mt-0.5";
             } else {
-                const remCanteen = canteenCloseSec - currentSeconds;
-                canteenLabelEl.innerText = "До закрытия";
-                canteenTimerEl.innerText = formatDuration(remCanteen);
-                canteenTimerEl.className = "text-lg sm:text-xl font-mono-num font-extrabold text-amber-300 tracking-wider mt-0.5";
+                canteenLabelEl.innerText = "Столовая";
+                canteenTimerEl.innerText = "ЗАКРЫТА НА СЕГОДНЯ";
+                canteenTimerEl.className = "text-sm sm:text-base font-mono-num font-extrabold text-red-400 tracking-wider mt-0.5";
             }
 
             const iconBox = document.getElementById('status-icon-box');
@@ -1230,43 +1493,43 @@
 
             const firstLesson = todayLessons[0];
             const lastLesson = todayLessons[todayLessons.length - 1];
-            const dayStartSec = timeToSeconds(BELL_SCHEDULE[firstLesson.num].start);
-            const dayEndSec = timeToSeconds(BELL_SCHEDULE[lastLesson.num].end);
+            const dayStartMs = timeToMs(BELL_SCHEDULE[firstLesson.num].start);
+            const dayEndMs = timeToMs(BELL_SCHEDULE[lastLesson.num].end);
 
-            if (currentSeconds < dayStartSec) {
+            if (currentMs < dayStartMs) {
                 iconBox.innerText = "🎒"; badge.innerText = `Подготовка • ${DAY_NAMES[dayOfWeek]}`; title.innerText = `Первый урок в ${BELL_SCHEDULE[firstLesson.num].start}: ${firstLesson.subject}`; subtitle.innerText = `Кабинет: ${firstLesson.room}`;
-                countdownBox.classList.remove('hidden'); document.getElementById('countdown-label').innerText = "До урока"; document.getElementById('countdown-timer').innerText = formatDuration(dayStartSec - currentSeconds);
+                countdownBox.classList.remove('hidden'); document.getElementById('countdown-label').innerText = "До урока"; document.getElementById('countdown-timer').innerText = formatDurationMs(dayStartMs - currentMs);
                 progressContainer.classList.add('hidden');
-            } else if (currentSeconds >= dayEndSec) {
+            } else if (currentMs >= dayEndMs) {
                 iconBox.innerText = "🏠"; badge.innerText = "День завершён"; title.innerText = "Уроки закончились! Отдыхайте 🎉"; subtitle.innerText = "Хорошего вечера!";
                 countdownBox.classList.add('hidden'); progressContainer.classList.add('hidden');
             } else {
-                let foundActive = null, foundBreak = null, prevEnd = 0;
+                let foundActive = null, foundBreak = null;
                 for (let i = 0; i < todayLessons.length; i++) {
                     const les = todayLessons[i];
                     const bell = BELL_SCHEDULE[les.num];
-                    const sSec = timeToSeconds(bell.start), eSec = timeToSeconds(bell.end);
-                    if (currentSeconds >= sSec && currentSeconds < eSec) { foundActive = { ...les, startSec: sSec, endSec: eSec, startStr: bell.start, endStr: bell.end }; break; }
+                    const sMs = timeToMs(bell.start), eMs = timeToMs(bell.end);
+                    if (currentMs >= sMs && currentMs < eMs) { foundActive = { ...les, startMs: sMs, endMs: eMs, startStr: bell.start, endStr: bell.end }; break; }
                     if (i > 0) {
                         const pBell = BELL_SCHEDULE[todayLessons[i-1].num];
-                        const pEnd = timeToSeconds(pBell.end);
-                        if (currentSeconds >= pEnd && currentSeconds < sSec) { foundBreak = { ...les, startSec: sSec, startStr: bell.start, prevEnd: pBell.end }; prevEnd = pEnd; break; }
+                        const pEnd = timeToMs(pBell.end);
+                        if (currentMs >= pEnd && currentMs < sMs) { foundBreak = { ...les, startMs: sMs, startStr: bell.start, prevEnd: pBell.end }; break; }
                     }
                 }
 
                 if (foundActive) {
-                    const rem = foundActive.endSec - currentSeconds;
-                    const dur = foundActive.endSec - foundActive.startSec;
-                    const pct = Math.min(100, Math.max(0, Math.round(((currentSeconds - foundActive.startSec) / dur) * 100)));
+                    const rem = foundActive.endMs - currentMs;
+                    const dur = foundActive.endMs - foundActive.startMs;
+                    const pct = Math.min(100, Math.max(0, ((currentMs - foundActive.startMs) / dur) * 100)).toFixed(2);
                     iconBox.innerText = "📚"; badge.innerText = `Идёт ${foundActive.num} урок`; title.innerText = foundActive.subject; subtitle.innerText = `Каб. ${foundActive.room} • ${foundActive.teacher}`;
-                    countdownBox.classList.remove('hidden'); document.getElementById('countdown-label').innerText = "До конца урока"; document.getElementById('countdown-timer').innerText = formatDuration(rem);
+                    countdownBox.classList.remove('hidden'); document.getElementById('countdown-label').innerText = "До конца урока"; document.getElementById('countdown-timer').innerText = formatDurationMs(rem);
                     progressContainer.classList.remove('hidden');
                     document.getElementById('progress-start-text').innerText = foundActive.startStr; document.getElementById('progress-percent-text').innerText = `${pct}%`; document.getElementById('progress-end-text').innerText = foundActive.endStr;
                     document.getElementById('progress-bar').style.width = `${pct}%`;
                 } else if (foundBreak) {
-                    const rem = foundBreak.startSec - currentSeconds;
+                    const rem = foundBreak.startMs - currentMs;
                     iconBox.innerText = "☕"; badge.innerText = "Перемена"; title.innerText = `Далее: ${foundBreak.subject} (${foundBreak.num} урок)`; subtitle.innerText = `В каб. ${foundBreak.room}`;
-                    countdownBox.classList.remove('hidden'); document.getElementById('countdown-label').innerText = "До начала"; document.getElementById('countdown-timer').innerText = formatDuration(rem);
+                    countdownBox.classList.remove('hidden'); document.getElementById('countdown-label').innerText = "До начала"; document.getElementById('countdown-timer').innerText = formatDurationMs(rem);
                     progressContainer.classList.add('hidden');
                 }
             }
@@ -1280,30 +1543,17 @@
 
         function scrollToActiveOrTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
-        function toggleDemoPanel() { document.getElementById('demo-panel').classList.toggle('hidden'); document.getElementById('demo-chevron').classList.toggle('rotate-180'); }
-        function applyPreset() {
-            const p = document.getElementById('sim-preset').value;
-            if (p === 'real') { resetSimulation(); return; }
-            isSimulated = true; simDay = parseInt(document.getElementById('sim-day').value, 10);
-            const times = { before: "11:50", lesson6: "12:35", break7: "13:05", lesson7: "13:25", after: "18:30" };
-            simSecondsOffset = timeToSeconds(times[p] || "12:35");
-            document.getElementById('demo-active-pill').classList.remove('hidden');
-            selectDay(simDay); updateLiveTimer();
-        }
-        function applySimulation() { applyPreset(); }
-        function resetSimulation() { isSimulated = false; document.getElementById('sim-preset').value = 'real'; document.getElementById('demo-active-pill').classList.add('hidden'); initAutoDay(); updateLiveTimer(); }
-
         function initAutoDay() {
             const realDay = new Date().getDay();
-            if (realDay >= 1 && realDay <= 5) { document.getElementById('weekend-notice').classList.add('hidden'); selectDay(realDay); document.getElementById('sim-day').value = String(realDay); }
-            else { document.getElementById('weekend-notice').classList.remove('hidden'); selectDay(1); document.getElementById('sim-day').value = "1"; }
+            if (realDay >= 1 && realDay <= 5) { document.getElementById('weekend-notice').classList.add('hidden'); selectDay(realDay); }
+            else { document.getElementById('weekend-notice').classList.remove('hidden'); selectDay(1); }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             applyCustomizations();
             initAutoDay();
             updateLiveTimer();
-            setInterval(updateLiveTimer, 1000);
+            setInterval(updateLiveTimer, 31);
         });
     </script>
 </body>
