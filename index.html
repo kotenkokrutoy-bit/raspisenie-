@@ -1,100 +1,336 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Расписание 7г класса</title>
-    <!-- Подключаем Tailwind CSS -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Подключаем шрифт Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Подключаем иконки Phosphor -->
+    <!-- Шрифт Inter и JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Иконки Phosphor -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
+        :root {
+            /* Акцентные цвета по умолчанию (Индиго) */
+            --accent: #4f46e5;
+            --accent-light: #6366f1;
+            --accent-dark: #3730a3;
+            --accent-soft: rgba(79, 70, 229, 0.12);
+            --accent-glow: rgba(79, 70, 229, 0.35);
+            --header-grad-from: #4f46e5;
+            --header-grad-via: #4338ca;
+            --header-grad-to: #6d28d9;
+
+            /* Цвета темы по умолчанию (Светлая) */
+            --bg-body: #f1f5f9;
+            --bg-surface: #ffffff;
+            --bg-surface-alt: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-base: #e2e8f0;
+
+            /* Форма и скругления по умолчанию (Округлые) */
+            --radius-btn: 1rem;
+            --radius-card: 1.25rem;
+            --radius-badge: 0.75rem;
+        }
+
+        /* ТЕМЫ ОФОРМЛЕНИЯ */
+        body[data-theme="light"] {
+            --bg-body: #f1f5f9;
+            --bg-surface: #ffffff;
+            --bg-surface-alt: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-base: #e2e8f0;
+        }
+
+        body[data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-surface-alt: #162032;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-base: #334155;
+        }
+
+        body[data-theme="amoled"] {
+            --bg-body: #000000;
+            --bg-surface: #0a0a0c;
+            --bg-surface-alt: #121216;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --border-base: #27272a;
+        }
+
+        body[data-theme="glass"] {
+            --bg-body: #0f172a;
+            --bg-surface: rgba(30, 41, 59, 0.65);
+            --bg-surface-alt: rgba(15, 23, 42, 0.55);
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --border-base: rgba(255, 255, 255, 0.14);
+        }
+
+        /* ФОРМЫ КНОПОК И КАРТОЧЕК */
+        body[data-shape="rounded"] {
+            --radius-btn: 1rem;
+            --radius-card: 1.25rem;
+            --radius-badge: 0.75rem;
+        }
+
+        body[data-shape="pill"] {
+            --radius-btn: 9999px;
+            --radius-card: 2rem;
+            --radius-badge: 9999px;
+        }
+
+        body[data-shape="sharp"] {
+            --radius-btn: 0.375rem;
+            --radius-card: 0.5rem;
+            --radius-badge: 0.25rem;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            transition: background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1), color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
         }
-        /* Плавная анимация пульсации для активного урока */
-        @keyframes subtle-pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.2); }
-            50% { box-shadow: 0 0 0 8px rgba(79, 70, 229, 0); }
+
+        /* Фон для режима Стекло (Glassmorphism) */
+        body[data-theme="glass"] {
+            background-image: 
+                radial-gradient(at 10% 10%, var(--accent-glow) 0px, transparent 50%),
+                radial-gradient(at 90% 25%, rgba(139, 92, 246, 0.25) 0px, transparent 50%),
+                radial-gradient(at 50% 90%, var(--accent-soft) 0px, transparent 60%);
+            background-attachment: fixed;
         }
+
+        .font-mono-num {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Динамические классы тем и форм */
+        .theme-surface {
+            background-color: var(--bg-surface);
+            border-color: var(--border-base);
+            color: var(--text-primary);
+            border-radius: var(--radius-card);
+            transition: background-color 0.3s ease, border-color 0.3s ease, border-radius 0.3s ease, transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        body[data-theme="glass"] .theme-surface {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .theme-surface-alt {
+            background-color: var(--bg-surface-alt);
+            border-color: var(--border-base);
+            border-radius: var(--radius-card);
+            transition: all 0.3s ease;
+        }
+
+        .theme-text-muted {
+            color: var(--text-secondary);
+        }
+
+        .custom-btn {
+            border-radius: var(--radius-btn);
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .custom-btn:active {
+            transform: scale(0.94);
+        }
+
+        .custom-badge {
+            border-radius: var(--radius-badge);
+            transition: border-radius 0.3s ease;
+        }
+
+        .accent-bg {
+            background-color: var(--accent);
+            color: #ffffff;
+        }
+        .accent-bg:hover {
+            background-color: var(--accent-light);
+        }
+
+        .accent-soft-bg {
+            background-color: var(--accent-soft);
+            color: var(--accent-light);
+        }
+        body[data-theme="light"] .accent-soft-bg {
+            color: var(--accent-dark);
+        }
+
+        .accent-text {
+            color: var(--accent-light);
+        }
+        body[data-theme="light"] .accent-text {
+            color: var(--accent);
+        }
+
+        .header-gradient {
+            background: linear-gradient(135deg, var(--header-grad-from), var(--header-grad-via), var(--header-grad-to));
+            transition: background 0.5s ease;
+        }
+
+        /* Плавная каскадная анимация появления карточек уроков */
+        @keyframes lessonSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateY(18px) scale(0.98);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes slideLeftIn {
+            0% { opacity: 0; transform: translateX(26px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideRightIn {
+            0% { opacity: 0; transform: translateX(-26px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        .lesson-animate {
+            opacity: 0;
+            animation: lessonSlideIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .day-switch-next {
+            animation: slideLeftIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .day-switch-prev {
+            animation: slideRightIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* Пульсация текущего активного урока */
+        @keyframes activePulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 var(--accent-glow), 0 10px 25px -5px var(--accent-soft);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(0, 0, 0, 0), 0 12px 30px -5px var(--accent-glow);
+            }
+        }
+
         .active-lesson-card {
-            animation: subtle-pulse 2.5s infinite;
+            border-color: var(--accent) !important;
+            border-width: 2px !important;
+            animation: lessonSlideIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards, activePulse 2.5s infinite;
         }
+
+        /* Hover эффект карточки урока */
+        .lesson-card-hover:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-light);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+        }
+
         /* Кастомный скроллбар */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+            background: var(--bg-body);
         }
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+            background: var(--accent);
             border-radius: 9999px;
         }
     </style>
 </head>
-<body class="text-slate-800 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+<body data-theme="light" data-shape="rounded" class="min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
 
-    <!-- Шапка сайта -->
-    <header class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 text-white shadow-xl relative overflow-hidden">
-        <!-- Декоративные круги на фоне -->
+    <!-- Якорь для плавного скролла наверх -->
+    <div id="top-anchor"></div>
+
+    <!-- ШАПКА САЙТА -->
+    <header class="header-gradient text-white shadow-xl relative overflow-hidden">
+        <!-- Декоративные свечения -->
         <div class="absolute -top-24 -right-24 w-72 h-72 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-        <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-violet-400/20 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-black/15 rounded-full blur-2xl pointer-events-none"></div>
 
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 relative z-10">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-5 sm:py-7 relative z-10">
+            <!-- Верхняя строка: бейдж + кнопка кастомизации -->
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3 py-1.5 custom-badge text-xs font-semibold tracking-wide uppercase border border-white/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 -ml-4"></span>
+                    <span>2 смена • 7г класс</span>
+                </div>
+
+                <!-- Кнопка открытия конструктора тем -->
+                <button onclick="openCustomizer()" class="custom-btn inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-md px-3.5 py-2 text-xs sm:text-sm font-bold text-white border border-white/30 shadow-sm">
+                    <i class="ph-fill ph-paint-brush-broad text-base text-amber-300"></i>
+                    <span>Настроить вид</span>
+                </button>
+            </div>
+
+            <!-- Заголовок и живые часы -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase mb-2 border border-white/20">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 -ml-4"></span>
-                        Школьный портал • 2 смена
-                    </div>
-                    <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight flex items-center gap-2">
-                        Расписание 7г класса <span class="text-red-400 drop-shadow">❤️</span>
+                    <h1 class="text-2xl sm:text-4xl font-black tracking-tight flex items-center gap-2">
+                        Расписание 7г класса <span class="text-red-300 drop-shadow animate-pulse">❤️</span>
                     </h1>
+                    <p class="text-xs sm:text-sm text-white/80 font-medium mt-1">
+                        Обычно с 12:20 • Вторник и Четверг с 13:10
+                    </p>
                 </div>
 
                 <!-- Блок живых часов и даты -->
-                <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3 text-left sm:text-right w-full sm:w-auto flex sm:flex-col justify-between items-center sm:items-end">
-                    <div id="live-clock" class="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight leading-none">
+                <div class="bg-black/20 backdrop-blur-md border border-white/20 custom-badge px-4 py-2.5 text-left sm:text-right w-full sm:w-auto flex sm:flex-col justify-between items-center sm:items-end">
+                    <div id="live-clock" class="text-2xl sm:text-3xl font-extrabold font-mono-num tracking-tight leading-none">
                         00:00:00
                     </div>
-                    <div id="live-date" class="text-xs sm:text-sm text-indigo-100 font-medium mt-0 sm:mt-1">
+                    <div id="live-date" class="text-xs sm:text-sm text-white/80 font-medium mt-0 sm:mt-1">
                         Загрузка даты...
                     </div>
                 </div>
             </div>
 
-            <!-- Виджет живого статуса (Таймер урока / перемены) -->
-            <div id="status-banner" class="mt-6 bg-white/10 backdrop-blur-md border border-white/25 rounded-2xl p-4 sm:p-5 transition-all duration-300">
+            <!-- ВИДЖЕТ ЖИВОГО ТАЙМЕРА (ДО УРОКА / КОНЦА УРОКА / ПЕРЕМЕНЫ) -->
+            <div id="status-banner" class="mt-5 bg-white/15 backdrop-blur-md border border-white/25 custom-badge p-4 sm:p-5 transition-all duration-300 shadow-lg">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div class="flex items-start sm:items-center gap-3.5">
-                        <div id="status-icon-box" class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                        <div id="status-icon-box" class="w-12 h-12 custom-badge bg-white/20 flex items-center justify-center text-2xl shrink-0 shadow-inner">
                             ⏳
                         </div>
                         <div>
-                            <div id="status-badge" class="text-xs font-bold uppercase tracking-wider text-indigo-200 mb-0.5">
+                            <div id="status-badge" class="text-[11px] font-bold uppercase tracking-wider text-white/75 mb-0.5">
                                 Статус учебного дня
                             </div>
-                            <div id="status-title" class="text-base sm:text-lg font-bold text-white leading-snug">
+                            <div id="status-title" class="text-base sm:text-lg font-extrabold text-white leading-snug">
                                 Определение времени...
                             </div>
-                            <div id="status-subtitle" class="text-xs sm:text-sm text-indigo-100 mt-0.5">
+                            <div id="status-subtitle" class="text-xs sm:text-sm text-white/85 mt-0.5">
                                 Подождите секунду
                             </div>
                         </div>
                     </div>
 
                     <!-- Таймер обратного отсчета -->
-                    <div id="countdown-box" class="hidden bg-slate-900/40 border border-white/15 rounded-xl px-4 py-2.5 text-center shrink-0">
-                        <div id="countdown-label" class="text-[11px] uppercase tracking-wider text-indigo-200 font-semibold">
+                    <div id="countdown-box" class="hidden bg-black/35 border border-white/20 custom-badge px-4 py-2.5 text-center shrink-0">
+                        <div id="countdown-label" class="text-[10px] uppercase tracking-wider text-white/80 font-bold">
                             До конца урока
                         </div>
-                        <div id="countdown-timer" class="text-xl sm:text-2xl font-mono font-extrabold text-amber-300 tracking-wider mt-0.5">
+                        <div id="countdown-timer" class="text-xl sm:text-2xl font-mono-num font-extrabold text-amber-300 tracking-wider mt-0.5">
                             00:00
                         </div>
                     </div>
@@ -102,126 +338,132 @@
 
                 <!-- Полоса прогресса урока или перемены -->
                 <div id="progress-container" class="hidden mt-4">
-                    <div class="flex justify-between text-xs text-indigo-100 font-medium mb-1.5">
+                    <div class="flex justify-between text-xs text-white/90 font-semibold mb-1.5">
                         <span id="progress-start-text">Начало</span>
                         <span id="progress-percent-text">0%</span>
                         <span id="progress-end-text">Конец</span>
                     </div>
-                    <div class="w-full h-2.5 bg-slate-900/40 rounded-full overflow-hidden p-0.5 border border-white/10">
+                    <div class="w-full h-2.5 bg-black/35 rounded-full overflow-hidden p-0.5 border border-white/15">
                         <div id="progress-bar" class="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full transition-all duration-500" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
 
             <!-- Уведомление о выходном дне (показывается только в Сб и Вс) -->
-            <div id="weekend-notice" class="hidden mt-3 bg-amber-400/20 border border-amber-300/40 text-amber-100 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-medium flex items-center gap-2">
+            <div id="weekend-notice" class="hidden mt-3 bg-amber-400/20 border border-amber-300/40 text-amber-100 custom-badge px-4 py-2.5 text-xs sm:text-sm font-medium flex items-center gap-2">
                 <i class="ph-fill ph-sun-horizon text-lg text-amber-300 shrink-0"></i>
                 <span>Сегодня выходной! Автоматически открыто расписание на <b>Понедельник</b>.</span>
             </div>
         </div>
     </header>
 
-    <!-- Основной контент -->
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
     <main class="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-grow w-full">
 
-        <!-- Панель выбора дня недели (ТОЛЬКО 5 ДНЕЙ, без кнопки "Вся неделя") -->
+        <!-- ПАНЕЛЬ ВЫБОРА ДНЯ НЕДЕЛИ (5 ДНЕЙ, поддержка свайпов на телефоне) -->
         <div class="mb-6">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Выберите день недели</span>
-                <span id="selected-day-indicator" class="text-xs font-medium text-indigo-600"></span>
+            <div class="flex items-center justify-between mb-2.5 px-1">
+                <span class="text-xs font-bold uppercase tracking-wider theme-text-muted flex items-center gap-1.5">
+                    <i class="ph-bold ph-hand-swipe-right accent-text text-sm"></i>
+                    День недели (можно листать свайпом)
+                </span>
+                <span id="selected-day-indicator" class="text-xs font-semibold accent-text"></span>
             </div>
-            <div class="grid grid-cols-5 gap-2 sm:gap-3" id="day-tabs">
-                <!-- Кнопки генерируются и обновляются через JS -->
-                <button onclick="selectDay(1)" id="tab-1" class="day-tab group relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl font-bold text-sm transition-all border">
-                    <span class="sm:hidden text-base">Пн</span>
-                    <span class="hidden sm:inline text-sm">Понедельник</span>
-                    <span id="today-dot-1" class="hidden mt-1 text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-600">Сегодня</span>
+
+            <div class="grid grid-cols-5 gap-1.5 sm:gap-2.5" id="day-tabs">
+                <button onclick="selectDay(1)" id="tab-1" class="day-tab custom-btn relative flex flex-col items-center justify-center py-3 px-1.5 font-bold text-sm border">
+                    <span class="sm:hidden text-base font-extrabold">Пн</span>
+                    <span class="hidden sm:inline text-sm font-bold">Понедельник</span>
+                    <span id="today-dot-1" class="hidden mt-1 text-[10px] font-bold px-1.5 py-0.2 rounded-full">Сегодня</span>
                 </button>
-                <button onclick="selectDay(2)" id="tab-2" class="day-tab group relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl font-bold text-sm transition-all border">
-                    <span class="sm:hidden text-base">Вт</span>
-                    <span class="hidden sm:inline text-sm">Вторник</span>
-                    <span id="today-dot-2" class="hidden mt-1 text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-600">Сегодня</span>
+                <button onclick="selectDay(2)" id="tab-2" class="day-tab custom-btn relative flex flex-col items-center justify-center py-3 px-1.5 font-bold text-sm border">
+                    <span class="sm:hidden text-base font-extrabold">Вт</span>
+                    <span class="hidden sm:inline text-sm font-bold">Вторник</span>
+                    <span id="today-dot-2" class="hidden mt-1 text-[10px] font-bold px-1.5 py-0.2 rounded-full">Сегодня</span>
                 </button>
-                <button onclick="selectDay(3)" id="tab-3" class="day-tab group relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl font-bold text-sm transition-all border">
-                    <span class="sm:hidden text-base">Ср</span>
-                    <span class="hidden sm:inline text-sm">Среда</span>
-                    <span id="today-dot-3" class="hidden mt-1 text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-600">Сегодня</span>
+                <button onclick="selectDay(3)" id="tab-3" class="day-tab custom-btn relative flex flex-col items-center justify-center py-3 px-1.5 font-bold text-sm border">
+                    <span class="sm:hidden text-base font-extrabold">Ср</span>
+                    <span class="hidden sm:inline text-sm font-bold">Среда</span>
+                    <span id="today-dot-3" class="hidden mt-1 text-[10px] font-bold px-1.5 py-0.2 rounded-full">Сегодня</span>
                 </button>
-                <button onclick="selectDay(4)" id="tab-4" class="day-tab group relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl font-bold text-sm transition-all border">
-                    <span class="sm:hidden text-base">Чт</span>
-                    <span class="hidden sm:inline text-sm">Четверг</span>
-                    <span id="today-dot-4" class="hidden mt-1 text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-600">Сегодня</span>
+                <button onclick="selectDay(4)" id="tab-4" class="day-tab custom-btn relative flex flex-col items-center justify-center py-3 px-1.5 font-bold text-sm border">
+                    <span class="sm:hidden text-base font-extrabold">Чт</span>
+                    <span class="hidden sm:inline text-sm font-bold">Четверг</span>
+                    <span id="today-dot-4" class="hidden mt-1 text-[10px] font-bold px-1.5 py-0.2 rounded-full">Сегодня</span>
                 </button>
-                <button onclick="selectDay(5)" id="tab-5" class="day-tab group relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl font-bold text-sm transition-all border">
-                    <span class="sm:hidden text-base">Пт</span>
-                    <span class="hidden sm:inline text-sm">Пятница</span>
-                    <span id="today-dot-5" class="hidden mt-1 text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-600">Сегодня</span>
+                <button onclick="selectDay(5)" id="tab-5" class="day-tab custom-btn relative flex flex-col items-center justify-center py-3 px-1.5 font-bold text-sm border">
+                    <span class="sm:hidden text-base font-extrabold">Пт</span>
+                    <span class="hidden sm:inline text-sm font-bold">Пятница</span>
+                    <span id="today-dot-5" class="hidden mt-1 text-[10px] font-bold px-1.5 py-0.2 rounded-full">Сегодня</span>
                 </button>
             </div>
         </div>
 
-        <!-- Заголовок выбранного дня со сводкой -->
-        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm mb-4 flex flex-col gap-3">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold">
-                        <i class="ph-duotone ph-calendar-check"></i>
+        <!-- ОБЛАСТЬ СВАЙПА И ПЕРЕКЛЮЧЕНИЯ ДНЯ -->
+        <div id="schedule-swipe-area" class="touch-pan-y">
+            <!-- Заголовок выбранного дня со сводкой -->
+            <div id="day-header-card" class="theme-surface p-4 sm:p-5 border shadow-sm mb-4 flex flex-col gap-3">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 custom-badge accent-soft-bg flex items-center justify-center text-2xl font-bold shrink-0">
+                            <i class="ph-duotone ph-calendar-check"></i>
+                        </div>
+                        <div>
+                            <h2 id="day-title" class="text-lg sm:text-xl font-extrabold">Понедельник</h2>
+                            <p id="day-Meta" class="text-xs sm:text-sm theme-text-muted">Загрузка параметров дня...</p>
+                        </div>
                     </div>
-                    <div>
-                        <h2 id="day-title" class="text-lg sm:text-xl font-extrabold text-slate-800">Понедельник</h2>
-                        <p id="day-Meta" class="text-xs sm:text-sm text-slate-500">Загрузка параметров дня...</p>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span id="day-hours-badge" class="theme-surface-alt border text-xs font-bold px-3 py-1.5 custom-badge flex items-center gap-1.5">
+                            <i class="ph-bold ph-clock accent-text"></i> 12:20 – 17:15
+                        </span>
+                        <span id="day-count-badge" class="accent-soft-bg text-xs font-extrabold px-3 py-1.5 custom-badge">
+                            6 уроков
+                        </span>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span id="day-hours-badge" class="bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5">
-                        <i class="ph ph-clock text-indigo-600"></i> 12:20 – 17:15
-                    </span>
-                    <span id="day-count-badge" class="bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-xl">
-                        6 уроков
-                    </span>
+
+                <!-- Специальная настройка для Четверга (показывается только в Четверг) -->
+                <div id="thursday-options" class="hidden pt-3 border-t border-slate-200/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                    <div class="flex items-center gap-2 font-semibold">
+                        <i class="ph-fill ph-info accent-text text-base"></i>
+                        <span>В четверг основные уроки начинаются в <b>13:10</b>:</span>
+                    </div>
+                    <div class="inline-flex theme-surface-alt p-1 custom-badge border self-start sm:self-auto gap-1">
+                        <button onclick="setThursdayMode('start1310')" id="thu-mode-1310" class="custom-btn px-3 py-1.5 font-bold text-xs">
+                            С 13:10 (Англ. яз.)
+                        </button>
+                        <button onclick="setThursdayMode('withPracticum')" id="thu-mode-prac" class="custom-btn px-3 py-1.5 font-bold text-xs">
+                            + Практикум в 12:20
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Специальная настройка для Четверга (показывается только в Четверг) -->
-            <div id="thursday-options" class="hidden pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                <div class="flex items-center gap-2 text-indigo-900 font-semibold">
-                    <i class="ph-fill ph-info text-indigo-600 text-base"></i>
-                    <span>В четверг основные уроки начинаются в <b>13:10</b>:</span>
-                </div>
-                <div class="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200/70 self-start sm:self-auto">
-                    <button onclick="setThursdayMode('start1310')" id="thu-mode-1310" class="px-2.5 py-1 rounded-lg font-bold transition-all text-xs">
-                        С 13:10 (Англ. яз.)
-                    </button>
-                    <button onclick="setThursdayMode('withPracticum')" id="thu-mode-prac" class="px-2.5 py-1 rounded-lg font-bold transition-all text-xs">
-                        + Практикум в 12:20
-                    </button>
-                </div>
+            <!-- СПИСОК УРОКОВ НА ВЫБРАННЫЙ ДЕНЬ -->
+            <div id="lessons-list" class="space-y-3">
+                <!-- Карточки уроков рендерятся через JS с каскадной анимацией -->
             </div>
         </div>
 
-        <!-- Список уроков на выбранный день -->
-        <div id="lessons-list" class="space-y-3">
-            <!-- Карточки уроков рендерятся через JS -->
-        </div>
-
-        <!-- Панель тестирования таймера (Демо-режим для проверки работы во время уроков/перемен) -->
-        <div class="mt-10 bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
-            <button onclick="toggleDemoPanel()" class="w-full px-5 py-3.5 text-left flex items-center justify-between bg-slate-50/70 hover:bg-slate-100/80 transition-colors">
-                <div class="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-slate-600">
-                    <i class="ph-duotone ph-sliders-horizontal text-indigo-600 text-lg"></i>
+        <!-- ПАНЕЛЬ ТЕСТИРОВАНИЯ ТАЙМЕРА (СИМУЛЯТОР ВРЕМЕНИ) -->
+        <div class="mt-10 theme-surface border shadow-sm overflow-hidden">
+            <button onclick="toggleDemoPanel()" class="w-full px-5 py-4 text-left flex items-center justify-between hover:opacity-90 transition-opacity">
+                <div class="flex items-center gap-2.5 text-xs sm:text-sm font-bold">
+                    <i class="ph-duotone ph-clock-countdown accent-text text-xl"></i>
                     <span>Режим проверки таймера (Симулятор времени)</span>
-                    <span id="demo-active-pill" class="hidden bg-amber-100 text-amber-800 text-[11px] px-2 py-0.5 rounded-full font-extrabold">ВКЛЮЧЕН</span>
+                    <span id="demo-active-pill" class="hidden bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full font-extrabold uppercase">Тест</span>
                 </div>
-                <i id="demo-chevron" class="ph ph-caret-down text-slate-400 transition-transform"></i>
+                <i id="demo-chevron" class="ph-bold ph-caret-down theme-text-muted transition-transform duration-300"></i>
             </button>
-            <div id="demo-panel" class="hidden p-5 border-t border-slate-100 text-sm space-y-4">
-                <p class="text-xs text-slate-500">
-                    Хотите посмотреть, как сайт показывает отсчёт до конца урока или перемены прямо сейчас? Включите тестовое время:
+            <div id="demo-panel" class="hidden p-5 border-t border-slate-200/30 text-sm space-y-4">
+                <p class="text-xs theme-text-muted">
+                    Хотите проверить на переменке, как работает живой таймер посреди урока? Выберите тестовый сценарий:
                 </p>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">День недели:</label>
-                        <select id="sim-day" onchange="applySimulation()" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium bg-slate-50 focus:outline-none focus:border-indigo-500">
+                        <label class="block text-xs font-bold theme-text-muted mb-1">День недели:</label>
+                        <select id="sim-day" onchange="applySimulation()" class="w-full custom-badge border theme-surface-alt px-3 py-2.5 text-sm font-semibold focus:outline-none">
                             <option value="1">Понедельник</option>
                             <option value="2">Вторник</option>
                             <option value="3">Среда</option>
@@ -230,8 +472,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">Быстрый сценарий:</label>
-                        <select id="sim-preset" onchange="applyPreset()" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium bg-slate-50 focus:outline-none focus:border-indigo-500">
+                        <label class="block text-xs font-bold theme-text-muted mb-1">Быстрый сценарий:</label>
+                        <select id="sim-preset" onchange="applyPreset()" class="w-full custom-badge border theme-surface-alt px-3 py-2.5 text-sm font-semibold focus:outline-none">
                             <option value="real">Реальное время (Авто)</option>
                             <option value="before">До уроков (11:50)</option>
                             <option value="lesson6">Идёт 6 урок (12:35)</option>
@@ -242,7 +484,7 @@
                         </select>
                     </div>
                     <div class="flex items-end">
-                        <button onclick="resetSimulation()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 px-4 rounded-xl text-xs transition-colors">
+                        <button onclick="resetSimulation()" class="w-full custom-btn accent-soft-bg font-bold py-2.5 px-4 text-xs">
                             Вернуть реальное время
                         </button>
                     </div>
@@ -252,17 +494,256 @@
 
     </main>
 
-    <!-- Подвал -->
-    <footer class="bg-white border-t border-slate-200/80 py-5 px-4 text-center text-xs text-slate-400 mt-auto">
+    <!-- ПЛАВАЮЩАЯ КНОПКА БЫСТРОГО СКРОЛЛА И КАСТОМИЗАЦИИ НА МОБИЛЬНОМ -->
+    <div id="floating-actions" class="fixed bottom-5 right-4 z-40 flex flex-col gap-2.5 transition-all duration-300 translate-y-20 opacity-0 pointer-events-none">
+        <button onclick="scrollToActiveOrTop()" title="К текущему уроку / Наверх" class="custom-btn accent-bg w-12 h-12 shadow-lg flex items-center justify-center text-xl border border-white/20">
+            <i class="ph-bold ph-arrow-up"></i>
+        </button>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО КАСТОМИЗАЦИИ (ТЕМА, ЦВЕТА, ФОРМА КНОПОК) -->
+    <div id="customizer-modal" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+        <div class="theme-surface border w-full max-w-lg p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl animate-[lessonSlideIn_0.25s_ease-out]">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200/30">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 custom-badge accent-soft-bg flex items-center justify-center text-xl">
+                        <i class="ph-duotone ph-palette"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-extrabold">Кастомизация расписания</h3>
+                        <p class="text-xs theme-text-muted">Сохраняется автоматически на вашем телефоне</p>
+                    </div>
+                </div>
+                <button onclick="closeCustomizer()" class="custom-btn theme-surface-alt border w-9 h-9 flex items-center justify-center text-lg">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+
+            <div class="space-y-5 my-5">
+                <!-- 1. Выбор Темы -->
+                <div>
+                    <label class="block text-xs font-extrabold uppercase tracking-wider theme-text-muted mb-2.5">
+                        1. Тема оформления
+                    </label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="theme-selector">
+                        <button onclick="setAppTheme('light')" data-val="light" class="theme-opt custom-btn border p-3 flex flex-col items-center gap-1.5 text-xs font-bold">
+                            <i class="ph-duotone ph-sun text-xl text-amber-500"></i>
+                            <span>Светлая</span>
+                        </button>
+                        <button onclick="setAppTheme('dark')" data-val="dark" class="theme-opt custom-btn border p-3 flex flex-col items-center gap-1.5 text-xs font-bold">
+                            <i class="ph-duotone ph-moon-stars text-xl text-indigo-400"></i>
+                            <span>Тёмная</span>
+                        </button>
+                        <button onclick="setAppTheme('amoled')" data-val="amoled" class="theme-opt custom-btn border p-3 flex flex-col items-center gap-1.5 text-xs font-bold">
+                            <i class="ph-duotone ph-sparkle text-xl text-emerald-400"></i>
+                            <span>Кибер Black</span>
+                        </button>
+                        <button onclick="setAppTheme('glass')" data-val="glass" class="theme-opt custom-btn border p-3 flex flex-col items-center gap-1.5 text-xs font-bold">
+                            <i class="ph-duotone ph-cube-transparent text-xl text-cyan-400"></i>
+                            <span>Стекло</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Выбор Цвета Кнопок и Акцентов -->
+                <div>
+                    <label class="block text-xs font-extrabold uppercase tracking-wider theme-text-muted mb-2.5">
+                        2. Цвет кнопок и акцентов
+                    </label>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5" id="color-selector">
+                        <button onclick="setAppAccent('indigo')" data-val="indigo" class="color-opt custom-btn border p-2.5 flex flex-col items-center gap-1.5 text-xs font-bold">
+                            <span class="w-6 h-6 rounded-full bg-indigo-600 shadow-sm border border-white/30"></span>
+                            <span>Индиго</span>
+                        </button>
+                        <button onclick="setAppAccent('emerald')" data-val="emerald" class="color-opt custom-btn border p-2.5 flex flex-col items-center gap-1.5 text-xs font-bold">
+                            <span class="w-6 h-6 rounded-full bg-emerald-600 shadow-sm border border-white/30"></span>
+                            <span>Изумруд</span>
+                        </button>
+                        <button onclick="setAppAccent('rose')" data-val="rose" class="color-opt custom-btn border p-2.5 flex flex-col items-center gap-1.5 text-xs font-bold">
+                            <span class="w-6 h-6 rounded-full bg-rose-600 shadow-sm border border-white/30"></span>
+                            <span>Роза</span>
+                        </button>
+                        <button onclick="setAppAccent('amber')" data-val="amber" class="color-opt custom-btn border p-2.5 flex flex-col items-center gap-1.5 text-xs font-bold">
+                            <span class="w-6 h-6 rounded-full bg-amber-500 shadow-sm border border-white/30"></span>
+                            <span>Янтарь</span>
+                        </button>
+                        <button onclick="setAppAccent('cyan')" data-val="cyan" class="color-opt custom-btn border p-2.5 flex flex-col items-center gap-1.5 text-xs font-bold">
+                            <span class="w-6 h-6 rounded-full bg-cyan-600 shadow-sm border border-white/30"></span>
+                            <span>Океан</span>
+                        </button>
+                        <button onclick="setAppAccent('violet')" data-val="violet" class="color-opt custom-btn border p-2.5 flex flex-col items-center gap-1.5 text-xs font-bold">
+                            <span class="w-6 h-6 rounded-full bg-purple-600 shadow-sm border border-white/30"></span>
+                            <span>Фиолет</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. Выбор Формы Кнопок и Карточек -->
+                <div>
+                    <label class="block text-xs font-extrabold uppercase tracking-wider theme-text-muted mb-2.5">
+                        3. Форма кнопок и карточек
+                    </label>
+                    <div class="grid grid-cols-3 gap-2.5" id="shape-selector">
+                        <button onclick="setAppShape('rounded')" data-val="rounded" class="shape-opt custom-btn border p-3 flex flex-col items-center gap-1 text-xs font-bold">
+                            <div class="w-8 h-4 border-2 border-current rounded-md mb-0.5"></div>
+                            <span>Округлые</span>
+                        </button>
+                        <button onclick="setAppShape('pill')" data-val="pill" class="shape-opt custom-btn border p-3 flex flex-col items-center gap-1 text-xs font-bold">
+                            <div class="w-8 h-4 border-2 border-current rounded-full mb-0.5"></div>
+                            <span>Капсула</span>
+                        </button>
+                        <button onclick="setAppShape('sharp')" data-val="sharp" class="shape-opt custom-btn border p-3 flex flex-col items-center gap-1 text-xs font-bold">
+                            <div class="w-8 h-4 border-2 border-current rounded-none mb-0.5"></div>
+                            <span>Строгие</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-200/30 flex items-center justify-between gap-3">
+                <button onclick="resetCustomizations()" class="custom-btn theme-surface-alt border px-4 py-2.5 text-xs font-bold theme-text-muted hover: opacity-80">
+                    Сбросить по умолчанию
+                </button>
+                <button onclick="closeCustomizer()" class="custom-btn accent-bg px-6 py-2.5 text-xs sm:text-sm font-extrabold shadow-md">
+                    Готово ✨
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПОДВАЛ -->
+    <footer class="theme-surface border-t py-5 px-4 text-center text-xs theme-text-muted mt-auto">
         <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
-            <p class="font-medium text-slate-500">Сделано специально для 7г класса ❤️</p>
-            <p>Обычно с 12:20 (6 ур.) • Вторник и Четверг с 13:10 (7 ур.)</p>
+            <p class="font-bold">Сделано специально для 7г класса ❤️</p>
+            <div class="flex items-center gap-3">
+                <span>Старт: 12:20 (Вт, Чт — 13:10)</span>
+                <span>•</span>
+                <button onclick="openCustomizer()" class="accent-text font-bold underline">Сменить тему</button>
+            </div>
         </div>
     </footer>
 
     <script>
         // ==========================================
-        // 1. ТОЧНЫЕ ДАННЫЕ РАСПИСАНИЯ ЗВОНКОВ И УРОКОВ (С учётом старта в 12:20 и Чт в 13:10)
+        // 1. ПАЛИТРЫ АКЦЕНТНЫХ ЦВЕТОВ И КАСТОМИЗАЦИЯ
+        // ==========================================
+        const ACCENT_PALETTES = {
+            indigo: {
+                accent: '#4f46e5', light: '#6366f1', dark: '#3730a3',
+                soft: 'rgba(79, 70, 229, 0.14)', glow: 'rgba(79, 70, 229, 0.35)',
+                gradFrom: '#4f46e5', gradVia: '#4338ca', gradTo: '#6d28d9'
+            },
+            emerald: {
+                accent: '#059669', light: '#10b981', dark: '#065f46',
+                soft: 'rgba(16, 185, 129, 0.14)', glow: 'rgba(16, 185, 129, 0.35)',
+                gradFrom: '#059669', gradVia: '#047857', gradTo: '#0f766e'
+            },
+            rose: {
+                accent: '#e11d48', light: '#f43f5e', dark: '#9f1239',
+                soft: 'rgba(244, 63, 94, 0.14)', glow: 'rgba(244, 63, 94, 0.35)',
+                gradFrom: '#e11d48', gradVia: '#be123c', gradTo: '#9d174d'
+            },
+            amber: {
+                accent: '#d97706', light: '#f59e0b', dark: '#92400e',
+                soft: 'rgba(245, 158, 11, 0.15)', glow: 'rgba(245, 158, 11, 0.35)',
+                gradFrom: '#d97706', gradVia: '#b45309', gradTo: '#c2410c'
+            },
+            cyan: {
+                accent: '#0284c7', light: '#0ea5e9', dark: '#075985',
+                soft: 'rgba(14, 165, 233, 0.14)', glow: 'rgba(14, 165, 233, 0.35)',
+                gradFrom: '#0284c7', gradVia: '#0369a1', gradTo: '#1d4ed8'
+            },
+            violet: {
+                accent: '#7c3aed', light: '#8b5cf6', dark: '#5b21b6',
+                soft: 'rgba(139, 92, 246, 0.14)', glow: 'rgba(139, 92, 246, 0.35)',
+                gradFrom: '#7c3aed', gradVia: '#6d28d9', gradTo: '#9333ea'
+            }
+        };
+
+        let userConfig = {
+            theme: localStorage.getItem('7g_theme') || 'light',
+            accent: localStorage.getItem('7g_accent') || 'indigo',
+            shape: localStorage.getItem('7g_shape') || 'rounded'
+        };
+
+        function applyCustomizations() {
+            // 1. Тема и форма на body
+            document.body.setAttribute('data-theme', userConfig.theme);
+            document.body.setAttribute('data-shape', userConfig.shape);
+
+            // 2. CSS переменные акцентного цвета
+            const p = ACCENT_PALETTES[userConfig.accent] || ACCENT_PALETTES.indigo;
+            const root = document.documentElement;
+            root.style.setProperty('--accent', p.accent);
+            root.style.setProperty('--accent-light', p.light);
+            root.style.setProperty('--accent-dark', p.dark);
+            root.style.setProperty('--accent-soft', p.soft);
+            root.style.setProperty('--accent-glow', p.glow);
+            root.style.setProperty('--header-grad-from', p.gradFrom);
+            root.style.setProperty('--header-grad-via', p.gradVia);
+            root.style.setProperty('--header-grad-to', p.gradTo);
+
+            // 3. Подсветка активных кнопок в модальном окне
+            document.querySelectorAll('.theme-opt').forEach(btn => {
+                const active = btn.getAttribute('data-val') === userConfig.theme;
+                btn.className = `theme-opt custom-btn border p-3 flex flex-col items-center gap-1.5 text-xs font-bold ${active ? 'accent-bg border-transparent shadow-md' : 'theme-surface-alt'}`;
+            });
+            document.querySelectorAll('.color-opt').forEach(btn => {
+                const active = btn.getAttribute('data-val') === userConfig.accent;
+                btn.className = `color-opt custom-btn border p-2.5 flex flex-col items-center gap-1.5 text-xs font-bold ${active ? 'ring-2 ring-offset-1 ring-current accent-soft-bg' : 'theme-surface-alt'}`;
+            });
+            document.querySelectorAll('.shape-opt').forEach(btn => {
+                const active = btn.getAttribute('data-val') === userConfig.shape;
+                btn.className = `shape-opt custom-btn border p-3 flex flex-col items-center gap-1 text-xs font-bold ${active ? 'accent-bg border-transparent shadow-md' : 'theme-surface-alt'}`;
+            });
+
+            updateDayTabsUI();
+            renderLessonsForSelectedDay(false);
+        }
+
+        function setAppTheme(theme) {
+            userConfig.theme = theme;
+            try { localStorage.setItem('7g_theme', theme); } catch (e) {}
+            applyCustomizations();
+        }
+
+        function setAppAccent(accent) {
+            userConfig.accent = accent;
+            try { localStorage.setItem('7g_accent', accent); } catch (e) {}
+            applyCustomizations();
+        }
+
+        function setAppShape(shape) {
+            userConfig.shape = shape;
+            try { localStorage.setItem('7g_shape', shape); } catch (e) {}
+            applyCustomizations();
+        }
+
+        function resetCustomizations() {
+            userConfig = { theme: 'light', accent: 'indigo', shape: 'rounded' };
+            try {
+                localStorage.removeItem('7g_theme');
+                localStorage.removeItem('7g_accent');
+                localStorage.removeItem('7g_shape');
+            } catch (e) {}
+            applyCustomizations();
+        }
+
+        function openCustomizer() {
+            document.getElementById('customizer-modal').classList.remove('hidden');
+        }
+
+        function closeCustomizer() {
+            document.getElementById('customizer-modal').classList.add('hidden');
+        }
+
+        // Закрытие по клику на фон
+        document.getElementById('customizer-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'customizer-modal') closeCustomizer();
+        });
+
+        // ==========================================
+        // 2. РАСПИСАНИЕ ЗВОНКОВ И УРОКОВ 7Г КЛАССА
         // ==========================================
         const BELL_SCHEDULE = {
             6:  { start: "12:20", end: "13:00" },
@@ -284,67 +765,61 @@
             0: "Воскресенье"
         };
 
-        // Режим четверга: по умолчанию 'start1310' (уроки начинаются в 13:10, практикум не считается обязательным стартом таймера)
         let thursdayMode = localStorage.getItem('schedule_7g_thu_mode') || 'start1310';
 
-        // Базовое расписание по дням (1 - Пн ... 5 - Пт)
         const SCHEDULE_DATA = {
             1: [ // Понедельник (с 12:20)
-                { num: 6,  subject: "Физика", teacher: "Сабурова Н.С.", room: "319", icon: "ph-atom", color: "blue" },
-                { num: 7,  subject: "Разговоры о важном", teacher: "Павлова И.А.", room: "307", icon: "ph-chats-circle", color: "amber" },
-                { num: 8,  subject: "Английский язык", teacher: "Гамалей А.К. / Машукова О.А.", room: "312 / 213", icon: "ph-translate", color: "rose" },
-                { num: 9,  subject: "Технология", teacher: "Игнатова Е.В. / Корниенко Г.Л.", room: "324 / 122М", icon: "ph-wrench", color: "emerald" },
-                { num: 10, subject: "Технология", teacher: "Игнатова Е.В. / Корниенко Г.Л.", room: "324 / 122М", icon: "ph-wrench", color: "emerald" },
-                { num: 11, subject: "География", teacher: "Калюжная Е.А.", room: "310", icon: "ph-globe-hemisphere-east", color: "teal" },
+                { num: 6,  subject: "Физика", teacher: "Сабурова Н.С.", room: "319", icon: "ph-atom" },
+                { num: 7,  subject: "Разговоры о важном", teacher: "Павлова И.А.", room: "307", icon: "ph-chats-circle" },
+                { num: 8,  subject: "Английский язык", teacher: "Гамалей А.К. / Машукова О.А.", room: "312 / 213", icon: "ph-translate" },
+                { num: 9,  subject: "Технология", teacher: "Игнатова Е.В. / Корниенко Г.Л.", room: "324 / 122М", icon: "ph-wrench" },
+                { num: 10, subject: "Технология", teacher: "Игнатова Е.В. / Корниенко Г.Л.", room: "324 / 122М", icon: "ph-wrench" },
+                { num: 11, subject: "География", teacher: "Калюжная Е.А.", room: "310", icon: "ph-globe-hemisphere-east" },
                 { num: 12, empty: true }
             ],
             2: [ // Вторник (с 13:10)
                 { num: 6,  empty: true },
-                { num: 7,  subject: "История", teacher: "Бабенко П.В.", room: "218", icon: "ph-scroll", color: "amber" },
-                { num: 8,  subject: "Математический практикум", teacher: "Жилина Т.А.", room: "205", icon: "ph-function", color: "indigo" },
-                { num: 9,  subject: "Вероятность и статистика", teacher: "Жилина Т.А.", room: "205", icon: "ph-chart-bar", color: "violet" },
-                { num: 10, subject: "Английский язык", teacher: "Гамалей А.К. / Машукова О.А.", room: "312 / 308А", icon: "ph-translate", color: "rose" },
-                { num: 11, subject: "География", teacher: "Калюжная Е.А.", room: "310", icon: "ph-globe-hemisphere-east", color: "teal" },
-                { num: 12, subject: "Биология", teacher: "Доля Н.В.", room: "219", icon: "ph-plant", color: "emerald" }
+                { num: 7,  subject: "История", teacher: "Бабенко П.В.", room: "218", icon: "ph-scroll" },
+                { num: 8,  subject: "Математический практикум", teacher: "Жилина Т.А.", room: "205", icon: "ph-function" },
+                { num: 9,  subject: "Вероятность и статистика", teacher: "Жилина Т.А.", room: "205", icon: "ph-chart-bar" },
+                { num: 10, subject: "Английский язык", teacher: "Гамалей А.К. / Машукова О.А.", room: "312 / 308А", icon: "ph-translate" },
+                { num: 11, subject: "География", teacher: "Калюжная Е.А.", room: "310", icon: "ph-globe-hemisphere-east" },
+                { num: 12, subject: "Биология", teacher: "Доля Н.В.", room: "219", icon: "ph-plant" }
             ],
             3: [ // Среда (с 12:20)
-                { num: 6,  subject: "Физическая культура", teacher: "Бондаренко-Добряк С.А.", room: "Зал 2", icon: "ph-basketball", color: "orange" },
-                { num: 7,  subject: "Физика", teacher: "Сабурова Н.С.", room: "220", icon: "ph-atom", color: "blue" },
-                { num: 8,  subject: "История", teacher: "Бабенко П.В.", room: "215", icon: "ph-scroll", color: "amber" },
-                { num: 9,  subject: "Геометрия", teacher: "Жилина Т.А.", room: "205", icon: "ph-shapes", color: "indigo" },
-                { num: 10, subject: "Алгебра", teacher: "Жилина Т.А.", room: "205", icon: "ph-calculator", color: "violet" },
-                { num: 11, subject: "Русский язык", teacher: "Павлова И.А.", room: "307", icon: "ph-book-bookmark", color: "rose" },
-                { num: 12, subject: "Литература", teacher: "Павлова И.А.", room: "307", icon: "ph-books", color: "pink" }
+                { num: 6,  subject: "Физическая культура", teacher: "Бондаренко-Добряк С.А.", room: "Зал 2", icon: "ph-basketball" },
+                { num: 7,  subject: "Физика", teacher: "Сабурова Н.С.", room: "220", icon: "ph-atom" },
+                { num: 8,  subject: "История", teacher: "Бабенко П.В.", room: "215", icon: "ph-scroll" },
+                { num: 9,  subject: "Геометрия", teacher: "Жилина Т.А.", room: "205", icon: "ph-shapes" },
+                { num: 10, subject: "Алгебра", teacher: "Жилина Т.А.", room: "205", icon: "ph-calculator" },
+                { num: 11, subject: "Русский язык", teacher: "Павлова И.А.", room: "307", icon: "ph-book-bookmark" },
+                { num: 12, subject: "Литература", teacher: "Павлова И.А.", room: "307", icon: "ph-books" }
             ],
-            4: [ // Четверг (По умолчанию уроки с 13:10, 6-й урок Практикум помечен как доп./по выбору)
-                { num: 6,  subject: "Практикум по русскому языку", teacher: "Павлова И.А.", room: "307", icon: "ph-pen-nib", color: "rose", optionalOnThu: true },
-                { num: 7,  subject: "Английский язык", teacher: "Гамалей А.К. / Машукова О.А.", room: "212 / 308А", icon: "ph-translate", color: "rose" },
-                { num: 8,  subject: "Литература", teacher: "Павлова И.А.", room: "307", icon: "ph-books", color: "pink" },
-                { num: 9,  subject: "Геометрия", teacher: "Жилина Т.А.", room: "205", icon: "ph-shapes", color: "indigo" },
-                { num: 10, subject: "Алгебра", teacher: "Жилина Т.А.", room: "205", icon: "ph-calculator", color: "violet" },
-                { num: 11, subject: "История", teacher: "Бабенко П.В.", room: "215", icon: "ph-scroll", color: "amber" },
-                { num: 12, subject: "Музыка", teacher: "Седых Н.П.", room: "111А", icon: "ph-music-notes", color: "sky" }
+            4: [ // Четверг (По умолчанию уроки с 13:10, 6-й урок Практикум переключаемый)
+                { num: 6,  subject: "Практикум по русскому языку", teacher: "Павлова И.А.", room: "307", icon: "ph-pen-nib", optionalOnThu: true },
+                { num: 7,  subject: "Английский язык", teacher: "Гамалей А.К. / Машукова О.А.", room: "212 / 308А", icon: "ph-translate" },
+                { num: 8,  subject: "Литература", teacher: "Павлова И.А.", room: "307", icon: "ph-books" },
+                { num: 9,  subject: "Геометрия", teacher: "Жилина Т.А.", room: "205", icon: "ph-shapes" },
+                { num: 10, subject: "Алгебра", teacher: "Жилина Т.А.", room: "205", icon: "ph-calculator" },
+                { num: 11, subject: "История", teacher: "Бабенко П.В.", room: "215", icon: "ph-scroll" },
+                { num: 12, subject: "Музыка", teacher: "Седых Н.П.", room: "111А", icon: "ph-music-notes" }
             ],
             5: [ // Пятница (с 12:20)
-                { num: 6,  subject: "Физическая культура", teacher: "Бондаренко-Добряк С.А.", room: "Зал 1", icon: "ph-basketball", color: "orange" },
-                { num: 7,  subject: "Информатика", teacher: "Гусаков С.Р. / Бочкова Л.С.", room: "213 / 212", icon: "ph-desktop", color: "cyan" },
-                { num: 8,  subject: "Русский язык", teacher: "Павлова И.А.", room: "307", icon: "ph-book-bookmark", color: "rose" },
-                { num: 9,  subject: "Алгебра", teacher: "Жилина Т.А.", room: "205", icon: "ph-calculator", color: "violet" },
-                { num: 10, subject: "Русский язык", teacher: "Павлова И.А.", room: "307", icon: "ph-book-bookmark", color: "rose" },
-                { num: 11, subject: "ИЗО", teacher: "Черная О.А.", room: "220", icon: "ph-palette", color: "emerald" },
-                { num: 12, subject: "Русский язык", teacher: "Павлова И.А.", room: "307", icon: "ph-book-bookmark", color: "rose" }
+                { num: 6,  subject: "Физическая культура", teacher: "Бондаренко-Добряк С.А.", room: "Зал 1", icon: "ph-basketball" },
+                { num: 7,  subject: "Информатика", teacher: "Гусаков С.Р. / Бочкова Л.С.", room: "213 / 212", icon: "ph-desktop" },
+                { num: 8,  subject: "Русский язык", teacher: "Павлова И.А.", room: "307", icon: "ph-book-bookmark" },
+                { num: 9,  subject: "Алгебра", teacher: "Жилина Т.А.", room: "205", icon: "ph-calculator" },
+                { num: 10, subject: "Русский язык", teacher: "Павлова И.А.", room: "307", icon: "ph-book-bookmark" },
+                { num: 11, subject: "ИЗО", teacher: "Черная О.А.", room: "220", icon: "ph-palette" },
+                { num: 12, subject: "Русский язык", teacher: "Павлова И.А.", room: "307", icon: "ph-book-bookmark" }
             ]
         };
 
-        // Возвращает список уроков дня с учётом того, что в Четверг уроки начинаются в 13:10
         function getDayLessons(dayNum) {
             const raw = SCHEDULE_DATA[dayNum] || [];
             return raw.map(item => {
                 if (dayNum === 4 && item.optionalOnThu) {
-                    return {
-                        ...item,
-                        isSkippedMain: thursdayMode === 'start1310'
-                    };
+                    return { ...item, isSkippedMain: thursdayMode === 'start1310' };
                 }
                 return { ...item, isSkippedMain: false };
             });
@@ -352,21 +827,18 @@
 
         function setThursdayMode(mode) {
             thursdayMode = mode;
-            try {
-                localStorage.setItem('schedule_7g_thu_mode', mode);
-            } catch (e) {}
+            try { localStorage.setItem('schedule_7g_thu_mode', mode); } catch (e) {}
             lastRenderedStateKey = "";
-            renderLessonsForSelectedDay();
+            renderLessonsForSelectedDay(true);
             updateLiveTimer();
         }
 
-        // Состояние приложения
-        let selectedDay = 1; // Выбранная вкладка (1..5)
+        // Состояние времени и выбранного дня
+        let selectedDay = 1;
         let isSimulated = false;
         let simDay = 1;
-        let simSecondsOffset = 0; // Смещение или фиксированное время в секундах от начала суток
+        let simSecondsOffset = 0;
 
-        // Вспомогательные функции времени
         function timeToSeconds(timeStr) {
             const [h, m] = timeStr.split(':').map(Number);
             return h * 3600 + m * 60;
@@ -378,17 +850,14 @@
             const m = Math.floor((totalSeconds % 3600) / 60);
             const s = Math.floor(totalSeconds % 60);
             const pad = (n) => String(n).padStart(2, '0');
-            if (h > 0) {
-                return `${pad(h)}:${pad(m)}:${pad(s)}`;
-            }
+            if (h > 0) return `${pad(h)}:${pad(m)}:${pad(s)}`;
             return `${pad(m)}:${pad(s)}`;
         }
 
-        // Получение текущего времени (реального или демо)
         function getNowState() {
             const now = new Date();
             if (!isSimulated) {
-                const dayOfWeek = now.getDay(); // 0 (Вс) .. 6 (Сб)
+                const dayOfWeek = now.getDay();
                 const currentSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
                 return {
                     dateObj: now,
@@ -397,7 +866,6 @@
                     timeString: now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
                 };
             } else {
-                // В демо-режиме секунды тикают вперёд
                 simSecondsOffset += 1;
                 const h = Math.floor(simSecondsOffset / 3600) % 24;
                 const m = Math.floor((simSecondsOffset % 3600) / 60);
@@ -413,12 +881,15 @@
         }
 
         // ==========================================
-        // 2. ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК И РЕНДЕР УРОКОВ
+        // 3. ПЛАВНАЯ СМЕНА ДНЯ НЕДЕЛИ И КАСКАДНЫЙ РЕНДЕР
         // ==========================================
         function selectDay(dayNum) {
+            const prevDay = selectedDay;
             selectedDay = dayNum;
+            const direction = dayNum >= prevDay ? 'next' : 'prev';
+
             updateDayTabsUI();
-            renderLessonsForSelectedDay();
+            renderLessonsForSelectedDay(true, direction);
         }
 
         function updateDayTabsUI() {
@@ -428,59 +899,64 @@
                 const btn = document.getElementById(`tab-${d}`);
                 const dot = document.getElementById(`today-dot-${d}`);
 
-                // Показываем метку "Сегодня" на текущем буднем дне
                 if (d === dayOfWeek) {
                     dot.classList.remove('hidden');
                 } else {
                     dot.classList.add('hidden');
                 }
 
-                // Стили активной и неактивной вкладки
                 if (d === selectedDay) {
-                    btn.className = "day-tab group relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl font-bold text-sm transition-all bg-indigo-600 text-white shadow-md shadow-indigo-600/25 border-indigo-600 scale-[1.02]";
+                    btn.className = "day-tab custom-btn relative flex flex-col items-center justify-center py-3 px-1.5 font-bold text-sm border accent-bg border-transparent shadow-lg scale-[1.03]";
                     if (d === dayOfWeek) {
-                        dot.className = "mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white";
+                        dot.className = "mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/25 text-white";
                     }
                 } else {
-                    btn.className = "day-tab group relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl font-bold text-sm transition-all bg-white text-slate-600 hover:bg-indigo-50/50 hover:text-indigo-600 border-slate-200/90 shadow-sm";
+                    btn.className = "day-tab custom-btn relative flex flex-col items-center justify-center py-3 px-1.5 font-bold text-sm border theme-surface hover:opacity-90";
                     if (d === dayOfWeek) {
-                        dot.className = "mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700";
+                        dot.className = "mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full accent-soft-bg";
                     }
                 }
             }
 
             const indicator = document.getElementById('selected-day-indicator');
             if (selectedDay === dayOfWeek) {
-                indicator.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-600 font-bold"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Открыт сегодняшний день</span>`;
+                indicator.innerHTML = `<span class="inline-flex items-center gap-1.5 font-extrabold"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Сегодня</span>`;
             } else {
                 indicator.innerHTML = `Просмотр: <b>${DAY_NAMES[selectedDay]}</b>`;
             }
         }
 
-        function renderLessonsForSelectedDay() {
+        function renderLessonsForSelectedDay(animate = true, direction = 'next') {
             const lessons = getDayLessons(selectedDay);
             const activeLessons = lessons.filter(l => !l.empty && !l.isSkippedMain);
             const firstLesson = activeLessons[0];
             const lastLesson = activeLessons[activeLessons.length - 1];
 
-            // Показываем или скрываем переключатель четверга
+            // Анимация заголовка дня
+            const headerCard = document.getElementById('day-header-card');
+            if (animate) {
+                headerCard.classList.remove('day-switch-next', 'day-switch-prev');
+                void headerCard.offsetWidth; // trigger reflow
+                headerCard.classList.add(direction === 'next' ? 'day-switch-next' : 'day-switch-prev');
+            }
+
+            // Переключатель четверга
             const thuBox = document.getElementById('thursday-options');
             if (selectedDay === 4) {
                 thuBox.classList.remove('hidden');
                 const btn1310 = document.getElementById('thu-mode-1310');
                 const btnPrac = document.getElementById('thu-mode-prac');
                 if (thursdayMode === 'start1310') {
-                    btn1310.className = "px-2.5 py-1 rounded-lg font-bold transition-all text-xs bg-indigo-600 text-white shadow-sm";
-                    btnPrac.className = "px-2.5 py-1 rounded-lg font-bold transition-all text-xs text-slate-600 hover:text-indigo-600";
+                    btn1310.className = "custom-btn px-3 py-1.5 font-bold text-xs accent-bg shadow-sm";
+                    btnPrac.className = "custom-btn px-3 py-1.5 font-bold text-xs theme-text-muted";
                 } else {
-                    btnPrac.className = "px-2.5 py-1 rounded-lg font-bold transition-all text-xs bg-indigo-600 text-white shadow-sm";
-                    btn1310.className = "px-2.5 py-1 rounded-lg font-bold transition-all text-xs text-slate-600 hover:text-indigo-600";
+                    btnPrac.className = "custom-btn px-3 py-1.5 font-bold text-xs accent-bg shadow-sm";
+                    btn1310.className = "custom-btn px-3 py-1.5 font-bold text-xs theme-text-muted";
                 }
             } else {
                 thuBox.classList.add('hidden');
             }
 
-            // Обновляем шапку дня
             document.getElementById('day-title').innerText = DAY_NAMES[selectedDay];
             if (selectedDay === 4 && thursdayMode === 'start1310') {
                 document.getElementById('day-Meta').innerText = "В четверг начало уроков в 13:10 (с 7-го урока)";
@@ -489,10 +965,10 @@
             } else {
                 document.getElementById('day-Meta').innerText = "Обычное начало уроков в 12:20 (с 6-го урока)";
             }
-            document.getElementById('day-hours-badge').innerHTML = `<i class="ph ph-clock text-indigo-600"></i> ${BELL_SCHEDULE[firstLesson.num].start} – ${BELL_SCHEDULE[lastLesson.num].end}`;
+
+            document.getElementById('day-hours-badge').innerHTML = `<i class="ph-bold ph-clock accent-text"></i> ${BELL_SCHEDULE[firstLesson.num].start} – ${BELL_SCHEDULE[lastLesson.num].end}`;
             document.getElementById('day-count-badge').innerText = `${activeLessons.length} уроков`;
 
-            // Определяем текущий активный или следующий урок для подсветки
             const { dayOfWeek, currentSeconds } = getNowState();
             const isTodaySelected = (selectedDay === dayOfWeek);
 
@@ -507,7 +983,6 @@
                 const isCurrentLesson = isTodaySelected && !item.empty && !item.isSkippedMain && currentSeconds >= startSec && currentSeconds < endSec;
                 const isPastLesson = isTodaySelected && currentSeconds >= endSec;
 
-                // Проверяем, идет ли сейчас перемена ПЕРЕД этим уроком
                 let isNextOnBreak = false;
                 if (isTodaySelected && !item.empty && !item.isSkippedMain && index > 0) {
                     const prevBell = BELL_SCHEDULE[item.num - 1];
@@ -520,77 +995,88 @@
                     }
                 }
 
-                // Если урока нет (например 6 урок во вторник или 12 в понедельник)
+                const delayStyle = animate ? `animation-delay: ${index * 45}ms;` : '';
+
+                // Пустой слот
                 if (item.empty) {
                     const emptyCard = document.createElement('div');
-                    emptyCard.className = "bg-slate-100/70 border border-dashed border-slate-300 rounded-2xl px-4 py-3 flex items-center justify-between text-slate-400 text-xs sm:text-sm";
+                    emptyCard.style = delayStyle;
+                    emptyCard.className = `theme-surface-alt border border-dashed px-4 py-3 flex items-center justify-between theme-text-muted text-xs sm:text-sm opacity-75 ${animate ? 'lesson-animate' : ''}`;
                     emptyCard.innerHTML = `
                         <div class="flex items-center gap-3">
-                            <span class="font-bold px-2.5 py-1 rounded-lg bg-slate-200/70 text-slate-500">${item.num} урок</span>
-                            <span class="font-mono text-xs">${bell.start} – ${bell.end}</span>
+                            <span class="font-bold px-2.5 py-1 custom-badge theme-surface border text-xs">${item.num} урок</span>
+                            <span class="font-mono-num text-xs">${bell.start} – ${bell.end}</span>
                         </div>
-                        <span class="font-medium italic">Нет урока (начинаем в 13:10)</span>
+                        <span class="font-medium italic">Свободно</span>
                     `;
                     container.appendChild(emptyCard);
                     return;
                 }
 
-                // Если это 6-й урок в четверг при режиме старта в 13:10
+                // Скрытый 6-й урок в Четверг (когда выбран старт в 13:10)
                 if (item.isSkippedMain) {
                     const optCard = document.createElement('div');
-                    optCard.className = "bg-slate-100/60 border border-dashed border-slate-300 rounded-2xl px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-slate-500 text-xs sm:text-sm";
+                    optCard.style = delayStyle;
+                    optCard.className = `theme-surface-alt border border-dashed px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 theme-text-muted text-xs sm:text-sm ${animate ? 'lesson-animate' : ''}`;
                     optCard.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <span class="font-bold px-2.5 py-1 rounded-lg bg-slate-200/80 text-slate-600">${item.num} урок (${bell.start}–${bell.end})</span>
-                            <span class="font-semibold text-slate-600">${item.subject} — ${item.teacher} (каб. ${item.room})</span>
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <span class="font-bold px-2.5 py-1 custom-badge theme-surface border">${item.num} урок (${bell.start}–${bell.end})</span>
+                            <span class="font-semibold">${item.subject} — ${item.teacher} (каб. ${item.room})</span>
                         </div>
-                        <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg self-start sm:self-auto">Основные уроки с 13:10 ↓</span>
+                        <button onclick="setThursdayMode('withPracticum')" class="text-xs font-extrabold accent-soft-bg px-3 py-1 custom-btn self-start sm:self-auto">
+                            Включить с 12:20
+                        </button>
                     `;
                     container.appendChild(optCard);
                     return;
                 }
 
-                // Формируем карточку урока
+                // Полноценная карточка урока
                 const card = document.createElement('div');
-                let cardClasses = "bg-white rounded-2xl p-4 sm:p-5 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ";
+                card.style = delayStyle;
+                if (isCurrentLesson) card.id = "active-lesson-anchor";
+
+                let cardClasses = `theme-surface lesson-card-hover p-4 sm:p-5 border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${animate ? 'lesson-animate' : ''} `;
                 if (isCurrentLesson) {
-                    cardClasses += "border-indigo-500 ring-2 ring-indigo-500/20 shadow-md active-lesson-card";
+                    cardClasses += "active-lesson-card";
                 } else if (isNextOnBreak) {
-                    cardClasses += "border-amber-400 ring-2 ring-amber-400/20 shadow-sm bg-amber-50/20";
+                    cardClasses += "ring-2 ring-amber-400/50 border-amber-400";
                 } else if (isPastLesson) {
-                    cardClasses += "border-slate-200/70 opacity-65 bg-slate-50/50";
+                    cardClasses += "opacity-60";
                 } else {
-                    cardClasses += "border-slate-200/90 hover:border-indigo-200 shadow-sm";
+                    cardClasses += "shadow-sm";
                 }
                 card.className = cardClasses;
 
-                // Статус-бейдж внутри карточки
                 let statusPill = '';
                 if (isCurrentLesson) {
-                    statusPill = `<span class="inline-flex items-center gap-1.5 bg-indigo-600 text-white text-[11px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wide"><span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping"></span> Идёт сейчас</span>`;
+                    statusPill = `<span class="inline-flex items-center gap-1.5 accent-bg text-[11px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm"><span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> Идёт сейчас</span>`;
                 } else if (isNextOnBreak) {
-                    statusPill = `<span class="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[11px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wide">Следующий (Перемена)</span>`;
+                    statusPill = `<span class="inline-flex items-center gap-1 bg-amber-500 text-white text-[11px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wide">Следующий (Перемена)</span>`;
                 } else if (isPastLesson) {
-                    statusPill = `<span class="inline-flex items-center gap-1 text-slate-400 text-xs font-semibold"><i class="ph-bold ph-check"></i> Завершён</span>`;
+                    statusPill = `<span class="inline-flex items-center gap-1 theme-text-muted text-xs font-semibold"><i class="ph-bold ph-check"></i> Прошёл</span>`;
                 }
 
                 card.innerHTML = `
                     <div class="flex items-start sm:items-center gap-3.5">
                         <!-- Номер урока и время -->
-                        <div class="flex flex-col items-center justify-center min-w-[78px] py-2 px-2.5 rounded-xl ${isCurrentLesson ? 'bg-indigo-600 text-white' : 'bg-indigo-50/80 text-indigo-900'} text-center shrink-0">
+                        <div class="flex flex-col items-center justify-center min-w-[82px] py-2.5 px-2.5 custom-badge ${isCurrentLesson ? 'accent-bg shadow-md' : 'accent-soft-bg'} text-center shrink-0">
                             <span class="text-xs font-extrabold uppercase tracking-wider">${item.num} урок</span>
-                            <span class="text-[11px] font-mono ${isCurrentLesson ? 'text-indigo-100' : 'text-indigo-600'} font-semibold mt-0.5">${bell.start}–${bell.end}</span>
+                            <span class="text-[11px] font-mono-num opacity-90 font-bold mt-0.5">${bell.start}–${bell.end}</span>
                         </div>
 
-                        <!-- Название предмета и учитель -->
+                        <!-- Предмет и учитель -->
                         <div>
                             <div class="flex flex-wrap items-center gap-2">
-                                <h3 class="text-base sm:text-lg font-extrabold text-slate-800 leading-snug">${item.subject}</h3>
+                                <h3 class="text-base sm:text-lg font-extrabold leading-snug flex items-center gap-1.5">
+                                    <i class="ph-duotone ${item.icon || 'ph-book'} accent-text text-lg"></i>
+                                    <span>${item.subject}</span>
+                                </h3>
                                 ${statusPill}
                             </div>
-                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-slate-500 mt-1">
-                                <span class="inline-flex items-center gap-1.5 font-medium text-slate-600">
-                                    <i class="ph-duotone ph-chalkboard-teacher text-indigo-500 text-base"></i>
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm theme-text-muted mt-1">
+                                <span class="inline-flex items-center gap-1.5 font-semibold">
+                                    <i class="ph-duotone ph-chalkboard-teacher accent-text text-base"></i>
                                     ${item.teacher}
                                 </span>
                             </div>
@@ -598,9 +1084,9 @@
                     </div>
 
                     <!-- Кабинет -->
-                    <div class="flex items-center justify-end sm: shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                        <div class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200/60">
-                            <i class="ph-duotone ph-door-open text-indigo-600 text-base"></i>
+                    <div class="flex items-center justify-end shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/25">
+                        <div class="inline-flex items-center gap-1.5 theme-surface-alt border font-extrabold text-xs sm:text-sm px-3.5 py-2 custom-badge">
+                            <i class="ph-duotone ph-door-open accent-text text-base"></i>
                             <span>${item.room.includes('Зал') ? item.room : 'каб. ' + item.room}</span>
                         </div>
                     </div>
@@ -611,19 +1097,17 @@
         }
 
         // ==========================================
-        // 3. ЛОГИКА ЖИВОГО ТАЙМЕРА ДО УРОКА / КОНЦА УРОКА
+        // 4. ЖИВОЙ ТАЙМЕР ДО УРОКА / КОНЦА УРОКА
         // ==========================================
         let lastRenderedStateKey = "";
 
         function updateLiveTimer() {
             const { dateObj, dayOfWeek, currentSeconds, timeString } = getNowState();
 
-            // 1. Обновляем часы и дату в шапке
             document.getElementById('live-clock').innerText = timeString;
             const dateFormatted = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
             document.getElementById('live-date').innerText = `${DAY_NAMES[dayOfWeek]}, ${dateFormatted}`;
 
-            // Элементы баннера статуса
             const iconBox = document.getElementById('status-icon-box');
             const badge = document.getElementById('status-badge');
             const title = document.getElementById('status-title');
@@ -637,18 +1121,16 @@
             const progressPercentText = document.getElementById('progress-percent-text');
             const progressEndText = document.getElementById('progress-end-text');
 
-            // 2. Если сегодня выходной (Суббота или Воскресенье)
             if (dayOfWeek === 0 || dayOfWeek === 6) {
                 iconBox.innerText = "🎉";
                 badge.innerText = "Выходной день";
                 title.innerText = "Сегодня уроков нет! Отдыхайте и набирайтесь сил";
-                subtitle.innerText = "Ниже открыто расписание на понедельник для подготовки";
+                subtitle.innerText = "Ниже открыто расписание на понедельник";
                 countdownBox.classList.add('hidden');
                 progressContainer.classList.add('hidden');
                 return;
             }
 
-            // 3. Получаем активные уроки сегодняшнего учебного дня
             const todayLessons = getDayLessons(dayOfWeek).filter(l => !l.empty && !l.isSkippedMain);
             if (todayLessons.length === 0) return;
 
@@ -659,12 +1141,11 @@
 
             let currentStateKey = `${dayOfWeek}-${thursdayMode}-none`;
 
-            // СЦЕНАРИЙ A: До начала первого урока сегодня
             if (currentSeconds < dayStartSec) {
                 const diff = dayStartSec - currentSeconds;
                 iconBox.innerText = "🎒";
                 badge.innerText = `Подготовка к школе • ${DAY_NAMES[dayOfWeek]}`;
-                title.innerText = `Первый урок сегодня в ${BELL_SCHEDULE[firstLesson.num].start}: ${firstLesson.subject} (${firstLesson.num} урок)`;
+                title.innerText = `Первый урок в ${BELL_SCHEDULE[firstLesson.num].start}: ${firstLesson.subject} (${firstLesson.num} урок)`;
                 subtitle.innerText = `Кабинет: ${firstLesson.room} • Учитель: ${firstLesson.teacher}`;
 
                 countdownBox.classList.remove('hidden');
@@ -672,21 +1153,17 @@
                 countdownTimer.innerText = formatDuration(diff);
                 progressContainer.classList.add('hidden');
                 currentStateKey = `${dayOfWeek}-${thursdayMode}-before`;
-            }
-            // СЦЕНАРИЙ B: Все уроки на сегодня уже закончились
-            else if (currentSeconds >= dayEndSec) {
+            } else if (currentSeconds >= dayEndSec) {
                 iconBox.innerText = "🏠";
                 badge.innerText = "Учебный день завершён";
                 title.innerText = "Уроки на сегодня закончились! Отдыхайте 🎉";
                 const nextDay = dayOfWeek === 5 ? 1 : dayOfWeek + 1;
-                subtitle.innerText = `Не забудьте проверить расписание на ${DAY_NAMES[nextDay].toLowerCase()}`;
+                subtitle.innerText = `Проверьте расписание на ${DAY_NAMES[nextDay].toLowerCase()}`;
 
                 countdownBox.classList.add('hidden');
                 progressContainer.classList.add('hidden');
                 currentStateKey = `${dayOfWeek}-after`;
-            }
-            // СЦЕНАРИЙ C: Идёт урок или перемена между уроками
-            else {
+            } else {
                 let foundActiveLesson = null;
                 let foundBreakNextLesson = null;
                 let prevLessonEndSec = 0;
@@ -713,7 +1190,6 @@
                     }
                 }
 
-                // Если сейчас идёт урок
                 if (foundActiveLesson) {
                     const remaining = foundActiveLesson.endSec - currentSeconds;
                     const duration = foundActiveLesson.endSec - foundActiveLesson.startSec;
@@ -721,9 +1197,9 @@
                     const percent = Math.min(100, Math.max(0, Math.round((elapsed / duration) * 100)));
 
                     iconBox.innerText = "📚";
-                    badge.innerText = `Сейчас идёт ${foundActiveLesson.num} урок (${foundActiveLesson.startStr} – ${foundActiveLesson.endStr})`;
+                    badge.innerText = `Идёт ${foundActiveLesson.num} урок (${foundActiveLesson.startStr} – ${foundActiveLesson.endStr})`;
                     title.innerText = foundActiveLesson.subject;
-                    subtitle.innerText = `Преподаватель: ${foundActiveLesson.teacher} • Кабинет: ${foundActiveLesson.room}`;
+                    subtitle.innerText = `Учитель: ${foundActiveLesson.teacher} • Кабинет: ${foundActiveLesson.room}`;
 
                     countdownBox.classList.remove('hidden');
                     countdownLabel.innerText = "До конца урока";
@@ -731,33 +1207,31 @@
 
                     progressContainer.classList.remove('hidden');
                     progressStartText.innerText = `Начало: ${foundActiveLesson.startStr}`;
-                    progressPercentText.innerText = `Прошло ${percent}% урока`;
+                    progressPercentText.innerText = `Прошло ${percent}%`;
                     progressEndText.innerText = `Звонок в ${foundActiveLesson.endStr}`;
                     progressBar.style.width = `${percent}%`;
                     progressBar.className = "h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full transition-all duration-500";
 
                     currentStateKey = `${dayOfWeek}-lesson-${foundActiveLesson.num}`;
-                }
-                // Если сейчас перемена
-                else if (foundBreakNextLesson) {
+                } else if (foundBreakNextLesson) {
                     const remaining = foundBreakNextLesson.startSec - currentSeconds;
                     const duration = foundBreakNextLesson.startSec - prevLessonEndSec;
                     const elapsed = currentSeconds - prevLessonEndSec;
                     const percent = Math.min(100, Math.max(0, Math.round((elapsed / duration) * 100)));
 
                     iconBox.innerText = "☕";
-                    badge.innerText = `Сейчас перемена! (${foundBreakNextLesson.prevEndStr} – ${foundBreakNextLesson.startStr})`;
-                    title.innerText = `Следующий: ${foundBreakNextLesson.subject} (${foundBreakNextLesson.num} урок)`;
-                    subtitle.innerText = `Идите в каб. ${foundBreakNextLesson.room} • Учитель: ${foundBreakNextLesson.teacher}`;
+                    badge.innerText = `Перемена! (${foundBreakNextLesson.prevEndStr} – ${foundBreakNextLesson.startStr})`;
+                    title.innerText = `Далее: ${foundBreakNextLesson.subject} (${foundBreakNextLesson.num} урок)`;
+                    subtitle.innerText = `Идите в каб. ${foundBreakNextLesson.room} • ${foundBreakNextLesson.teacher}`;
 
                     countdownBox.classList.remove('hidden');
                     countdownLabel.innerText = "До начала урока";
                     countdownTimer.innerText = formatDuration(remaining);
 
                     progressContainer.classList.remove('hidden');
-                    progressStartText.innerText = `Перемена с ${foundBreakNextLesson.prevEndStr}`;
+                    progressStartText.innerText = `С ${foundBreakNextLesson.prevEndStr}`;
                     progressPercentText.innerText = `${percent}% перемены`;
-                    progressEndText.innerText = `Урок в ${foundBreakNextLesson.startStr}`;
+                    progressEndText.innerText = `Звонок в ${foundBreakNextLesson.startStr}`;
                     progressBar.style.width = `${percent}%`;
                     progressBar.className = "h-full bg-gradient-to-r from-amber-400 to-orange-400 rounded-full transition-all duration-500";
 
@@ -765,16 +1239,58 @@
                 }
             }
 
-            // Перерисовываем карточки только при смене урока/перемены, чтобы не сбивать DOM каждую секунду
             if (currentStateKey !== lastRenderedStateKey) {
                 lastRenderedStateKey = currentStateKey;
                 updateDayTabsUI();
-                renderLessonsForSelectedDay();
+                renderLessonsForSelectedDay(false);
             }
         }
 
         // ==========================================
-        // 4. ДЕМО-РЕЖИМ (СИМУЛЯТОР ВРЕМЕНИ)
+        // 5. СВАЙПЫ ПАЛЬЦЕМ ДЛЯ МОБИЛЬНЫХ И ПЛАВНЫЙ СКРОЛЛ
+        // ==========================================
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        const swipeArea = document.getElementById('schedule-swipe-area');
+        swipeArea.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        swipeArea.addEventListener('touchend', (e) => {
+            const diffX = e.changedTouches[0].screenX - touchStartX;
+            const diffY = e.changedTouches[0].screenY - touchStartY;
+            if (Math.abs(diffX) > 65 && Math.abs(diffX) > Math.abs(diffY) * 1.4) {
+                if (diffX < 0 && selectedDay < 5) {
+                    selectDay(selectedDay + 1);
+                } else if (diffX > 0 && selectedDay > 1) {
+                    selectDay(selectedDay - 1);
+                }
+            }
+        }, { passive: true });
+
+        // Плавающая кнопка наверх / к текущему уроку
+        window.addEventListener('scroll', () => {
+            const fab = document.getElementById('floating-actions');
+            if (window.scrollY > 220) {
+                fab.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            } else {
+                fab.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }
+        }, { passive: true });
+
+        function scrollToActiveOrTop() {
+            const activeCard = document.getElementById('active-lesson-anchor');
+            if (activeCard) {
+                activeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // ==========================================
+        // 6. ДЕМО-РЕЖИМ И ЗАПУСК
         // ==========================================
         function toggleDemoPanel() {
             const panel = document.getElementById('demo-panel');
@@ -824,11 +1340,8 @@
             updateLiveTimer();
         }
 
-        // ==========================================
-        // 5. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ
-        // ==========================================
         function initAutoDaySelection() {
-            const realDay = new Date().getDay(); // 0 - Вс, 1..5 - Пн..Пт, 6 - Сб
+            const realDay = new Date().getDay();
             const weekendNotice = document.getElementById('weekend-notice');
 
             if (realDay >= 1 && realDay <= 5) {
@@ -836,7 +1349,6 @@
                 selectDay(realDay);
                 document.getElementById('sim-day').value = String(realDay);
             } else {
-                // В субботу или воскресенье открываем Понедельник и показываем плашку
                 weekendNotice.classList.remove('hidden');
                 selectDay(1);
                 document.getElementById('sim-day').value = "1";
@@ -844,6 +1356,7 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            applyCustomizations();
             initAutoDaySelection();
             updateLiveTimer();
             setInterval(updateLiveTimer, 1000);
