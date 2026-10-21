@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Расписание 7г класса • Ультимативная кастомизация и чат</title>
+    <title>Расписание 7г класса • Ультимативная кастомизация и игра</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -111,6 +111,18 @@
             background-image: var(--custom-bg-pattern), radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.15) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.15) 0%, transparent 40%);
             background-attachment: fixed;
             background-size: var(--pattern-size) var(--pattern-size), cover, cover;
+        }
+
+        body.low-perf *, body.low-perf {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            animation: none !important;
+            transition: none !important;
+            box-shadow: none !important;
+        }
+        body.low-perf {
+            background-image: none !important;
+            background-color: var(--bg-body) !important;
         }
 
         body[data-pattern="dots"] { 
@@ -234,21 +246,21 @@
         <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-black/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="max-w-4xl mx-auto px-4 sm:px-6 py-5 sm:py-7 relative z-10">
-            <div class="flex items-center justify-between gap-2 mb-3">
+            <div class="flex items-center justify-between gap-2 mb-3 flex-wrap">
                 <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3.5 py-1.5 custom-badge text-xs font-semibold tracking-wide uppercase border border-white/20">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                     <span class="w-2 h-2 rounded-full bg-emerald-400 -ml-4"></span>
                     <span>2 смена • 7г класс</span>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <button onclick="requestChatAccess()" class="custom-btn inline-flex items-center gap-2 bg-emerald-600/80 hover:bg-emerald-600 backdrop-blur-md px-4 py-2 text-xs sm:text-sm font-bold text-white border border-white/30 shadow-md">
-                        <i class="ph-fill ph-chat-teardrop-dots text-base text-emerald-200"></i>
-                        <span>Чат класса 💬</span>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button onclick="openGameModal()" class="custom-btn inline-flex items-center gap-1.5 bg-amber-600/80 hover:bg-amber-600 backdrop-blur-md px-3.5 py-2 text-xs sm:text-sm font-bold text-white border border-white/30 shadow-md">
+                        <i class="ph-fill ph-gamecontroller text-base text-amber-200"></i>
+                        <span>ИГРА</span>
                     </button>
-                    <button onclick="openCustomizer()" class="custom-btn inline-flex items-center gap-2 bg-white/25 hover:bg-white/35 backdrop-blur-md px-4 py-2 text-xs sm:text-sm font-bold text-white border border-white/30 shadow-md">
+                    <button onclick="openCustomizer()" class="custom-btn inline-flex items-center gap-1.5 bg-white/25 hover:bg-white/35 backdrop-blur-md px-3.5 py-2 text-xs sm:text-sm font-bold text-white border border-white/30 shadow-md">
                         <i class="ph-fill ph-paint-brush-broad text-base text-amber-300 animate-spin" style="animation-duration: 8s;"></i>
-                        <span>Кастомизация</span>
+                        <span>Настройки</span>
                     </button>
                 </div>
             </div>
@@ -273,44 +285,64 @@
                 </div>
             </div>
 
-            <!-- ВИДЖЕТ ЖИВОГО ТАЙМЕРА -->
-            <div id="status-banner" class="mt-5 bg-white/10 backdrop-blur-xl border border-white/25 custom-card p-4 sm:p-5 transition-all duration-300 shadow-2xl">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-                    <div class="flex items-start sm:items-center gap-3.5">
-                        <div id="status-icon-box" class="w-12 h-12 custom-box bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shrink-0 shadow-inner border border-white/20">
-                            ⏳
+            <!-- ВИДЖЕТ ЖИВОГО ТАЙМЕРА И СТОЛОВОЙ -->
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <!-- Основной таймер урока -->
+                <div id="status-banner" class="sm:col-span-2 bg-white/10 backdrop-blur-xl border border-white/25 custom-card p-4 sm:p-5 transition-all duration-300 shadow-2xl flex flex-col justify-between">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                        <div class="flex items-start sm:items-center gap-3.5">
+                            <div id="status-icon-box" class="w-12 h-12 custom-box bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shrink-0 shadow-inner border border-white/20">
+                                ⏳
+                            </div>
+                            <div>
+                                <div id="status-badge" class="text-[11px] font-bold uppercase tracking-wider text-white/75 mb-0.5">
+                                    Статус учебного дня
+                                </div>
+                                <div id="status-title" class="text-base sm:text-lg font-extrabold text-white leading-snug drop-shadow-sm">
+                                    Определение времени...
+                                </div>
+                                <div id="status-subtitle" class="text-xs sm:text-sm text-white/85 mt-0.5">
+                                    Подождите секунду
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <div id="status-badge" class="text-[11px] font-bold uppercase tracking-wider text-white/75 mb-0.5">
-                                Статус учебного дня
+
+                        <div id="countdown-box" class="hidden bg-black/30 backdrop-blur-md border border-white/20 custom-box px-5 py-2.5 text-center shrink-0 shadow-inner">
+                            <div id="countdown-label" class="text-[10px] uppercase tracking-wider text-white/80 font-bold">
+                                До конца урока
                             </div>
-                            <div id="status-title" class="text-base sm:text-lg font-extrabold text-white leading-snug drop-shadow-sm">
-                                Определение времени...
-                            </div>
-                            <div id="status-subtitle" class="text-xs sm:text-sm text-white/85 mt-0.5">
-                                Подождите секунду
+                            <div id="countdown-timer" class="text-xl sm:text-2xl font-mono-num font-extrabold text-amber-300 tracking-wider mt-0.5 drop-shadow">
+                                00:00
                             </div>
                         </div>
                     </div>
 
-                    <div id="countdown-box" class="hidden bg-black/30 backdrop-blur-md border border-white/20 custom-box px-5 py-2.5 text-center shrink-0 shadow-inner">
-                        <div id="countdown-label" class="text-[10px] uppercase tracking-wider text-white/80 font-bold">
-                            До конца урока
+                    <div id="progress-container" class="hidden mt-4">
+                        <div class="flex justify-between text-xs text-white/90 font-semibold mb-1.5 px-1">
+                            <span id="progress-start-text">Начало</span>
+                            <span id="progress-percent-text">0%</span>
+                            <span id="progress-end-text">Конец</span>
                         </div>
-                        <div id="countdown-timer" class="text-xl sm:text-2xl font-mono-num font-extrabold text-amber-300 tracking-wider mt-0.5 drop-shadow">
-                            00:00
+                        <div class="w-full h-2.5 bg-black/30 backdrop-blur-md rounded-full overflow-hidden p-0.5 border border-white/20">
+                            <div id="progress-bar" class="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full transition-all duration-500 shadow-sm" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
 
-                <div id="progress-container" class="hidden mt-4">
-                    <div class="flex justify-between text-xs text-white/90 font-semibold mb-1.5 px-1">
-                        <span id="progress-start-text">Начало</span>
-                        <span id="progress-percent-text">0%</span>
-                        <span id="progress-end-text">Конец</span>
+                <!-- Таймер столовой до 16:25 -->
+                <div class="bg-white/10 backdrop-blur-xl border border-white/25 custom-card p-4 sm:p-5 flex flex-col justify-between shadow-2xl">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 custom-box bg-amber-500/20 text-amber-300 border border-amber-400/30 flex items-center justify-center text-xl shrink-0">
+                            🍲
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-white/75">Столовая школы</div>
+                            <div class="text-xs font-bold text-white">Закрытие в 16:25</div>
+                        </div>
                     </div>
-                    <div class="w-full h-2.5 bg-black/30 backdrop-blur-md rounded-full overflow-hidden p-0.5 border border-white/20">
-                        <div id="progress-bar" class="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full transition-all duration-500 shadow-sm" style="width: 0%"></div>
+                    <div class="mt-3 text-center bg-black/30 backdrop-blur-md border border-white/20 custom-box py-2 px-3">
+                        <div id="canteen-status-label" class="text-[10px] uppercase tracking-wider text-white/70 font-bold">Осталось до закрытия</div>
+                        <div id="canteen-timer" class="text-lg sm:text-xl font-mono-num font-extrabold text-amber-300 tracking-wider mt-0.5">00:00:00</div>
                     </div>
                 </div>
             </div>
@@ -451,60 +483,35 @@
 
     </main>
 
-    <!-- МОДАЛЬНОЕ ОКНО ЗАПРОСА ПАРОЛЯ ДЛЯ ЧАТА -->
-    <div id="chat-auth-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop transition-opacity">
-        <div class="theme-surface border w-full max-w-sm p-6 shadow-2xl flex flex-col rounded-3xl animate-[lessonSlideIn_0.25s_ease-out] text-center">
-            <div class="w-12 h-12 custom-badge accent-soft-bg border border-current/20 flex items-center justify-center text-2xl mx-auto mb-3">
-                <i class="ph-duotone ph-lock-key"></i>
-            </div>
-            <h3 class="text-lg font-extrabold mb-1">Вход в чат класса</h3>
-            <p class="text-xs theme-text-muted mb-4">Введите секретный пароль для доступа:</p>
-            <input type="password" id="chat-password-input" maxlength="25" placeholder="Введите пароль..." onkeydown="if(event.key==='Enter') verifyChatPassword()" class="custom-badge border theme-surface-alt px-4 py-3 text-sm font-bold text-center focus:outline-none mb-3">
-            <div class="flex gap-2">
-                <button onclick="closeChatAuth()" class="flex-1 custom-btn theme-surface-alt border py-2.5 text-xs font-bold theme-text-muted">Отмена</button>
-                <button onclick="verifyChatPassword()" class="flex-1 custom-btn accent-bg py-2.5 text-xs font-extrabold shadow-md">Войти 🔓</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- МОДАЛЬНОЕ ОКНО ЧАТА КЛАССА -->
-    <div id="chat-modal" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 modal-backdrop transition-opacity">
-        <div class="theme-surface border w-full max-w-xl h-[90vh] sm:h-[80vh] p-4 sm:p-6 shadow-2xl flex flex-col rounded-t-3xl sm:rounded-3xl animate-[lessonSlideIn_0.25s_ease-out]">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-500/20 shrink-0">
+    <!-- МОДАЛЬНОЕ ОКНО ИГРЫ -->
+    <div id="game-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 modal-backdrop transition-opacity">
+        <div class="theme-surface border w-full max-w-xl p-5 sm:p-6 shadow-2xl flex flex-col rounded-3xl animate-[lessonSlideIn_0.25s_ease-out] text-center">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-500/20 mb-4">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 custom-badge bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-xl">
-                        <i class="ph-duotone ph-chat-teardrop-text"></i>
+                    <div class="w-9 h-9 custom-badge bg-amber-600/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-xl">
+                        🎮
                     </div>
                     <div>
-                        <h3 class="text-base sm:text-lg font-extrabold">Чат 7г класса 💬</h3>
-                        <p class="text-xs theme-text-muted">Общайтесь вежливо (мат удаляется авто)</p>
+                        <h3 class="text-base sm:text-lg font-extrabold">ИГРА • Раннер 7Г</h3>
+                        <p class="text-xs theme-text-muted">Прыгайте по пробелу или тапу, уворачивайтесь от препятствий!</p>
                     </div>
                 </div>
-                <button onclick="closeChatModal()" class="custom-btn theme-surface-alt border w-9 h-9 flex items-center justify-center text-lg">
+                <button onclick="closeGameModal()" class="custom-btn theme-surface-alt border w-9 h-9 flex items-center justify-center text-lg">
                     <i class="ph-bold ph-x"></i>
                 </button>
             </div>
 
-            <!-- Смена никнейма -->
-            <div class="py-2.5 px-3 theme-surface-alt border rounded-xl my-2.5 flex items-center justify-between shrink-0 text-xs">
-                <span class="theme-text-muted font-semibold">Ваш ник:</span>
-                <div class="flex items-center gap-2">
-                    <input type="text" id="chat-nickname" maxlength="20" placeholder="Ваше имя" onchange="saveNickname(this.value)" class="custom-badge border theme-surface px-2.5 py-1 text-xs font-extrabold focus:outline-none w-32 sm:w-40">
+            <div class="relative w-full bg-slate-950/80 border border-white/20 custom-card overflow-hidden h-52 sm:h-60 flex items-end justify-center shadow-inner">
+                <canvas id="gameCanvas" class="w-full h-full block cursor-pointer"></canvas>
+                <div id="game-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-white">
+                    <div id="game-msg" class="text-base sm:text-lg font-extrabold mb-3">Нажмите ПРОБЕЛ или тапните экран, чтобы начать!</div>
+                    <button onclick="startArcadeGame()" class="custom-btn accent-bg px-7 py-3 text-sm font-extrabold shadow-xl">Играть 🚀</button>
                 </div>
             </div>
 
-            <!-- Список сообщений -->
-            <div id="chat-messages" class="flex-grow overflow-y-auto space-y-3 pr-1 my-2">
-                <!-- Динамически -->
-            </div>
-
-            <!-- Поле ввода -->
-            <div class="pt-3 border-t border-slate-500/20 flex gap-2 shrink-0">
-                <input type="text" id="chat-input" maxlength="250" placeholder="Написать сообщение классу..." onkeydown="if(event.key==='Enter') sendChatMessage()" class="flex-grow custom-badge border theme-surface-alt px-4 py-3 text-xs sm:text-sm focus:outline-none font-medium">
-                <button onclick="sendChatMessage()" class="custom-btn accent-bg px-5 py-3 text-xs sm:text-sm font-extrabold shadow-md flex items-center gap-1.5 shrink-0">
-                    <i class="ph-bold ph-paper-plane-tilt"></i>
-                    <span class="hidden sm:inline">Отправить</span>
-                </button>
+            <div class="flex justify-between items-center mt-4 text-xs sm:text-sm font-bold px-2">
+                <span>Счёт: <span id="game-score" class="font-mono-num accent-text text-base">0</span></span>
+                <span>Рекорд класса: <span id="game-highscore" class="font-mono-num text-amber-300 text-base">0</span></span>
             </div>
         </div>
     </div>
@@ -519,7 +526,7 @@
                     </div>
                     <div>
                         <h3 class="text-base sm:text-lg font-extrabold">Ультимативная кастомизация</h3>
-                        <p class="text-xs theme-text-muted">Настройте темы, множество цветов и форму</p>
+                        <p class="text-xs theme-text-muted">Темы, цвета, форма и оптимизация</p>
                     </div>
                 </div>
                 <button onclick="closeCustomizer()" class="custom-btn theme-surface-alt border w-9 h-9 flex items-center justify-center text-lg">
@@ -528,9 +535,21 @@
             </div>
 
             <div class="space-y-6 my-5 text-sm">
+                <!-- Оптимизация для слабых устройств -->
+                <div class="theme-surface-alt p-3.5 border custom-badge flex items-center justify-between">
+                    <div>
+                        <div class="font-extrabold text-xs">🚀 Режим для слабых устройств</div>
+                        <div class="text-[11px] theme-text-muted">Отключает размытие, тени и анимации для скорости</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="low-perf-toggle" onchange="toggleLowPerf(this.checked)" class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </label>
+                </div>
+
                 <!-- 1. Темы -->
                 <div>
-                    <label class="block text-xs font-extrabold uppercase tracking-wider theme-text-muted mb-2.5">1. Тема оформления (Translucent)</label>
+                    <label class="block text-xs font-extrabold uppercase tracking-wider theme-text-muted mb-2.5">1. Тема оформления</label>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="theme-selector">
                         <button onclick="setAppTheme('light')" data-val="light" class="theme-opt custom-btn border p-3 flex flex-col items-center gap-1.5 text-xs font-bold">
                             <i class="ph-duotone ph-sun text-xl text-amber-500"></i><span>Светлая</span>
@@ -553,7 +572,7 @@
                     </div>
                 </div>
 
-                <!-- 2. Расширенные акцентные цвета -->
+                <!-- 2. Акцентные цвета -->
                 <div>
                     <label class="block text-xs font-extrabold uppercase tracking-wider theme-text-muted mb-2.5">2. Акцентный цвет (12 вариантов)</label>
                     <div class="grid grid-cols-3 sm:grid-cols-4 gap-2.5" id="color-selector">
@@ -666,8 +685,8 @@
 
     <!-- ПЛАВАЮЩАЯ КНОПКА -->
     <div id="floating-actions" class="fixed bottom-5 right-4 z-40 flex flex-col gap-2.5 transition-all duration-300 translate-y-20 opacity-0 pointer-events-none">
-        <button onclick="requestChatAccess()" title="Чат класса" class="custom-btn bg-emerald-600 hover:bg-emerald-500 text-white w-12 h-12 shadow-lg flex items-center justify-center text-xl border border-white/20">
-            <i class="ph-bold ph-chat-teardrop-dots"></i>
+        <button onclick="openGameModal()" title="Игра" class="custom-btn bg-amber-600 hover:bg-amber-500 text-white w-12 h-12 shadow-lg flex items-center justify-center text-xl border border-white/20">
+            🎮
         </button>
         <button onclick="scrollToActiveOrTop()" title="Наверх" class="custom-btn accent-bg w-12 h-12 shadow-lg flex items-center justify-center text-xl border border-white/20">
             <i class="ph-bold ph-arrow-up"></i>
@@ -707,7 +726,8 @@
             font: localStorage.getItem('7g_font_ex') || "'Inter', sans-serif",
             pattern: localStorage.getItem('7g_pattern_ex') || 'none',
             opacity: localStorage.getItem('7g_opacity_ex') || '0.65',
-            blur: localStorage.getItem('7g_blur_ex') || '20px'
+            blur: localStorage.getItem('7g_blur_ex') || '20px',
+            lowPerf: localStorage.getItem('7g_low_perf') === 'true'
         };
 
         const SHAPE_PRESETS = {
@@ -724,6 +744,14 @@
             document.body.setAttribute('data-theme', userConfig.theme);
             document.body.setAttribute('data-shape', userConfig.shape);
             document.body.setAttribute('data-pattern', userConfig.pattern);
+
+            if (userConfig.lowPerf) {
+                document.body.classList.add('low-perf');
+                document.getElementById('low-perf-toggle').checked = true;
+            } else {
+                document.body.classList.remove('low-perf');
+                document.getElementById('low-perf-toggle').checked = false;
+            }
 
             root.style.setProperty('--font-family', userConfig.font);
             root.style.setProperty('--card-opacity', userConfig.opacity);
@@ -773,9 +801,10 @@
         function setAppPattern(p) { userConfig.pattern = p; localStorage.setItem('7g_pattern_ex', p); applyCustomizations(); }
         function setAppOpacity(o) { userConfig.opacity = o; localStorage.setItem('7g_opacity_ex', o); document.getElementById('opacity-val').innerText = o; applyCustomizations(); }
         function setAppBlur(b) { userConfig.blur = b + 'px'; localStorage.setItem('7g_blur_ex', userConfig.blur); document.getElementById('blur-val').innerText = userConfig.blur; applyCustomizations(); }
+        function toggleLowPerf(checked) { userConfig.lowPerf = checked; localStorage.setItem('7g_low_perf', checked ? 'true' : 'false'); applyCustomizations(); }
 
         function resetCustomizations() {
-            userConfig = { theme: 'dark', accent: 'indigo', shape: 'rounded', font: "'Inter', sans-serif", pattern: 'none', opacity: '0.65', blur: '20px' };
+            userConfig = { theme: 'dark', accent: 'indigo', shape: 'rounded', font: "'Inter', sans-serif", pattern: 'none', opacity: '0.65', blur: '20px', lowPerf: false };
             localStorage.clear();
             applyCustomizations();
         }
@@ -784,170 +813,160 @@
         function closeCustomizer() { document.getElementById('customizer-modal').classList.add('hidden'); }
         document.getElementById('customizer-modal').addEventListener('click', (e) => { if (e.target.id === 'customizer-modal') closeCustomizer(); });
 
-        /* --- СУПЕР-НАДЁЖНЫЙ ЧАТ С BROADCASTCHANNEL И POLLING --- */
-        const CHAT_SECRET_PASSWORD = "999888777666555";
-        const BAD_WORDS = [
-            'хуй', 'пизд', 'еб', 'епт', 'бля', 'сук', 'сука', 'мраз', 'чмо', 'пидор', 'гондон', 'залуп', 
-            'суки', 'сучка', 'еба', 'ебу', 'еблан', 'хуе', 'хуё', 'хуя', 'пидорас', 'отсос', 'засран', 'шлюх',
-            'fuck', 'shit', 'bitch', 'cunt', 'whore', 'asshole'
-        ];
+        /* --- УЛУЧШЕННАЯ ИГРА (АРКАДНЫЙ РАННЕР) --- */
+        let gameInterval = null;
+        let player = { x: 40, y: 0, vy: 0, gravity: 0.65, jump: -11.5, size: 30, grounded: true };
+        let obstaclesList = [];
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('7g_arcade_highscore') || '0', 10);
+        let gameActive = false;
+        let gameSpeed = 5;
 
-        function containsBadWords(text) {
-            const clean = text.toLowerCase().replace(/[^a-zа-яё0-9]/g, '');
-            return BAD_WORDS.some(word => clean.includes(word));
+        function openGameModal() {
+            document.getElementById('game-modal').classList.remove('hidden');
+            document.getElementById('game-highscore').innerText = highScore;
+            initCanvas();
+            resetGameScene();
         }
 
-        let chatNickname = localStorage.getItem('7g_chat_nickname') || ('Ученик ' + Math.floor(Math.random() * 899 + 100));
-        let chatMessages = JSON.parse(localStorage.getItem('7g_chat_messages_v2') || '[]');
+        function closeGameModal() {
+            document.getElementById('game-modal').classList.add('hidden');
+            gameActive = false;
+            if (gameInterval) clearInterval(gameInterval);
+        }
+        document.getElementById('game-modal').addEventListener('click', (e) => { if (e.target.id === 'game-modal') closeGameModal(); });
 
-        // Создаем канал для мгновенной синхронизации между вкладками и устройствами
-        const chatBroadcast = new BroadcastChannel('class_7g_chat_channel');
-        chatBroadcast.onmessage = (event) => {
-            if (event.data && event.data.type === 'NEW_MESSAGE') {
-                chatMessages = event.data.messages;
-                renderChatMessages();
+        function initCanvas() {
+            const canvas = document.getElementById('gameCanvas');
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+
+        function resetGameScene() {
+            const canvas = document.getElementById('gameCanvas');
+            player.y = canvas.height - 40 - player.size;
+            player.vy = 0;
+            player.grounded = true;
+            obstaclesList = [];
+            score = 0;
+            gameSpeed = 5;
+            document.getElementById('game-score').innerText = '0';
+            document.getElementById('game-overlay').classList.remove('hidden');
+            document.getElementById('game-msg').innerText = "Нажмите ПРОБЕЛ или тапните экран, чтобы начать!";
+            drawScene();
+        }
+
+        function startArcadeGame() {
+            document.getElementById('game-overlay').classList.add('hidden');
+            gameActive = true;
+            score = 0;
+            gameSpeed = 5;
+            obstaclesList = [];
+            if (gameInterval) clearInterval(gameInterval);
+
+            const canvas = document.getElementById('gameCanvas');
+
+            gameInterval = setInterval(() => {
+                if (!gameActive) return;
+
+                // Увеличение скорости со временем
+                gameSpeed += 0.0015;
+
+                // Физика игрока
+                player.vy += player.gravity;
+                player.y += player.vy;
+                const groundY = canvas.height - 40 - player.size;
+                if (player.y >= groundY) {
+                    player.y = groundY;
+                    player.vy = 0;
+                    player.grounded = true;
+                }
+
+                // Спавн препятствий
+                if (Math.random() < 0.02 && (obstaclesList.length === 0 || obstaclesList[obstaclesList.length - 1].x < canvas.width - 180)) {
+                    const h = Math.floor(Math.random() * 30) + 25;
+                    const w = Math.floor(Math.random() * 15) + 20;
+                    obstaclesList.push({ x: canvas.width, w: w, h: h, speed: gameSpeed });
+                }
+
+                // Движение препятствий
+                for (let i = obstaclesList.length - 1; i >= 0; i--) {
+                    obstaclesList[i].x -= gameSpeed;
+                    if (obstaclesList[i].x + obstaclesList[i].w < 0) {
+                        obstaclesList.splice(i, 1);
+                        score += 15;
+                        document.getElementById('game-score').innerText = score;
+                        if (score > highScore) {
+                            highScore = score;
+                            localStorage.setItem('7g_arcade_highscore', highScore);
+                            document.getElementById('game-highscore').innerText = highScore;
+                        }
+                    }
+
+                    // Коллизия (столкновение)
+                    if (
+                        player.x < obstaclesList[i].x + obstaclesList[i].w &&
+                        player.x + player.size > obstaclesList[i].x &&
+                        player.y < canvas.height - 40 &&
+                        player.y + player.size > canvas.height - 40 - obstaclesList[i].h
+                    ) {
+                        gameActive = false;
+                        clearInterval(gameInterval);
+                        document.getElementById('game-overlay').classList.remove('hidden');
+                        document.getElementById('game-msg').innerText = `💥 Бабах! Счёт: ${score}`;
+                    }
+                }
+
+                drawScene();
+            }, 1000 / 60);
+        }
+
+        function playerJump() {
+            if (!gameActive) return;
+            if (player.grounded) {
+                player.vy = player.jump;
+                player.grounded = false;
             }
-        };
+        }
 
-        function requestChatAccess() {
-            if (sessionStorage.getItem('7g_chat_unlocked') === 'true') {
-                openChatModal();
-            } else {
-                document.getElementById('chat-password-input').value = '';
-                document.getElementById('chat-auth-modal').classList.remove('hidden');
-                setTimeout(() => document.getElementById('chat-password-input').focus(), 100);
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !document.getElementById('game-modal').classList.contains('hidden')) {
+                e.preventDefault();
+                if (!gameActive) startArcadeGame();
+                else playerJump();
             }
-        }
-
-        function closeChatAuth() {
-            document.getElementById('chat-auth-modal').classList.add('hidden');
-        }
-
-        function verifyChatPassword() {
-            const inputVal = document.getElementById('chat-password-input').value.trim();
-            if (inputVal === CHAT_SECRET_PASSWORD) {
-                sessionStorage.setItem('7g_chat_unlocked', 'true');
-                closeChatAuth();
-                openChatModal();
-            } else {
-                alert('❌ Неверный пароль!');
-                document.getElementById('chat-password-input').value = '';
-            }
-        }
-
-        function openChatModal() {
-            document.getElementById('chat-nickname').value = chatNickname;
-            document.getElementById('chat-modal').classList.remove('hidden');
-            loadMessagesFromStorage();
-            renderChatMessages();
-        }
-
-        function closeChatModal() {
-            document.getElementById('chat-modal').classList.add('hidden');
-        }
-
-        document.getElementById('chat-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'chat-modal') closeChatModal();
         });
 
-        document.getElementById('chat-auth-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'chat-auth-modal') closeChatAuth();
+        document.getElementById('gameCanvas').addEventListener('click', () => {
+            if (!gameActive) startArcadeGame();
+            else playerJump();
         });
 
-        function saveNickname(val) {
-            const clean = val.trim();
-            if (clean.length > 0) {
-                chatNickname = clean;
-                localStorage.setItem('7g_chat_nickname', clean);
-            }
-        }
+        function drawScene() {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        function loadMessagesFromStorage() {
-            const saved = localStorage.getItem('7g_chat_messages_v2');
-            if (saved) {
-                try {
-                    chatMessages = JSON.parse(saved);
-                } catch(e) {
-                    chatMessages = [];
-                }
-            }
-        }
+            // Линия земли
+            ctx.strokeStyle = '#6366f1';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - 40);
+            ctx.lineTo(canvas.width, canvas.height - 40);
+            ctx.stroke();
 
-        function sendChatMessage() {
-            const input = document.getElementById('chat-input');
-            const text = input.value.trim();
-            if (!text) return;
+            // Персонаж
+            ctx.fillStyle = '#6366f1';
+            ctx.fillRect(player.x, player.y, player.size, player.size);
+            // Глаз персонажа
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(player.x + 18, player.y + 8, 6, 6);
 
-            if (containsBadWords(text)) {
-                alert('⚠️ Сообщение не отправлено: оно содержит запрещённые слова или мат.');
-                input.value = '';
-                return;
-            }
-
-            loadMessagesFromStorage();
-
-            const newMsg = {
-                id: Date.now() + Math.random(),
-                author: chatNickname,
-                text: text,
-                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-            };
-
-            chatMessages.push(newMsg);
-            if (chatMessages.length > 100) chatMessages.shift();
-
-            localStorage.setItem('7g_chat_messages_v2', JSON.stringify(chatMessages));
-
-            // Отправляем в BroadcastChannel другим открытым вкладкам
-            try {
-                chatBroadcast.postMessage({ type: 'NEW_MESSAGE', messages: chatMessages });
-            } catch(e) {}
-
-            input.value = '';
-            renderChatMessages();
-        }
-
-        // Периодическая проверка хранилища для обновления сообщений без перезагрузки
-        setInterval(() => {
-            if (!document.getElementById('chat-modal').classList.contains('hidden')) {
-                const prevLen = chatMessages.length;
-                loadMessagesFromStorage();
-                if (chatMessages.length !== prevLen) {
-                    renderChatMessages();
-                }
-            }
-        }, 1500);
-
-        function renderChatMessages() {
-            loadMessagesFromStorage();
-            const container = document.getElementById('chat-messages');
-            if (!container) return;
-
-            if (chatMessages.length === 0) {
-                container.innerHTML = `<div class="text-center py-10 theme-text-muted text-xs italic">В чате пока нет сообщений. Напишите первым! 👋</div>`;
-                return;
-            }
-
-            container.innerHTML = chatMessages.map(m => {
-                const isMe = m.author === chatNickname;
-                return `
-                    <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-                        <div class="flex items-center gap-1.5 text-[10px] theme-text-muted mb-0.5 px-1">
-                            <span class="font-bold accent-text">${escapeHtml(m.author)}</span>
-                            <span>•</span>
-                            <span>${m.time}</span>
-                        </div>
-                        <div class="theme-surface-alt border px-3.5 py-2 custom-badge max-w-[85%] sm:max-w-[75%] text-xs sm:text-sm font-medium break-words ${isMe ? 'bg-indigo-600/20 border-indigo-500/30' : ''}">
-                            ${escapeHtml(m.text)}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function escapeHtml(str) {
-            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            // Препятствия
+            ctx.fillStyle = '#f59e0b';
+            obstaclesList.forEach(obs => {
+                ctx.fillRect(obs.x, canvas.height - 40 - obs.h, obs.w, obs.h);
+            });
         }
 
         const BELL_SCHEDULE = {
@@ -1092,7 +1111,7 @@
             const lastLesson = activeLessons[activeLessons.length - 1];
 
             const headerCard = document.getElementById('day-header-card');
-            if (animate) {
+            if (animate && !userConfig.lowPerf) {
                 headerCard.classList.remove('day-switch-next', 'day-switch-prev');
                 void headerCard.offsetWidth;
                 headerCard.classList.add(direction === 'next' ? 'day-switch-next' : 'day-switch-prev');
@@ -1123,19 +1142,19 @@
                 const endSec = timeToSeconds(bell.end);
                 const isCurrentLesson = isTodaySelected && !item.empty && !item.isSkippedMain && currentSeconds >= startSec && currentSeconds < endSec;
                 const isPastLesson = isTodaySelected && currentSeconds >= endSec;
-                const delayStyle = animate ? `animation-delay: ${index * 40}ms;` : '';
+                const delayStyle = (animate && !userConfig.lowPerf) ? `animation-delay: ${index * 40}ms;` : '';
 
                 if (item.empty) {
-                    container.innerHTML += `<div style="${delayStyle}" class="theme-surface-alt border border-dashed px-4 py-3 flex items-center justify-between theme-text-muted text-xs opacity-75 ${animate ? 'lesson-animate' : ''}"><div class="flex items-center gap-3"><span class="font-bold px-2.5 py-1 custom-badge theme-surface border text-xs">${item.num} урок</span><span class="font-mono-num">${bell.start} – ${bell.end}</span></div><span class="italic">Свободно</span></div>`;
+                    container.innerHTML += `<div style="${delayStyle}" class="theme-surface-alt border border-dashed px-4 py-3 flex items-center justify-between theme-text-muted text-xs opacity-75 ${animate && !userConfig.lowPerf ? 'lesson-animate' : ''}"><div class="flex items-center gap-3"><span class="font-bold px-2.5 py-1 custom-badge theme-surface border text-xs">${item.num} урок</span><span class="font-mono-num">${bell.start} – ${bell.end}</span></div><span class="italic">Свободно</span></div>`;
                     return;
                 }
 
                 if (item.isSkippedMain) {
-                    container.innerHTML += `<div style="${delayStyle}" class="theme-surface-alt border border-dashed px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 theme-text-muted text-xs ${animate ? 'lesson-animate' : ''}"><div class="flex items-center gap-3"><span class="font-bold px-2.5 py-1 custom-badge theme-surface border">${item.num} урок (${bell.start}–${bell.end})</span><span>${item.subject}</span></div><button onclick="setThursdayMode('withPracticum')" class="text-xs font-extrabold accent-soft-bg border border-current/20 px-3 py-1 custom-btn">Включить с 12:20</button></div>`;
+                    container.innerHTML += `<div style="${delayStyle}" class="theme-surface-alt border border-dashed px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 theme-text-muted text-xs ${animate && !userConfig.lowPerf ? 'lesson-animate' : ''}"><div class="flex items-center gap-3"><span class="font-bold px-2.5 py-1 custom-badge theme-surface border">${item.num} урок (${bell.start}–${bell.end})</span><span>${item.subject}</span></div><button onclick="setThursdayMode('withPracticum')" class="text-xs font-extrabold accent-soft-bg border border-current/20 px-3 py-1 custom-btn">Включить с 12:20</button></div>`;
                     return;
                 }
 
-                let cardClasses = `theme-surface lesson-card-hover p-4 sm:p-5 border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${animate ? 'lesson-animate' : ''} `;
+                let cardClasses = `theme-surface lesson-card-hover p-4 sm:p-5 border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${animate && !userConfig.lowPerf ? 'lesson-animate' : ''} `;
                 if (isCurrentLesson) { cardClasses += "active-lesson-card"; }
                 else if (isPastLesson) cardClasses += "opacity-60"; else cardClasses += "shadow-lg";
 
@@ -1177,6 +1196,21 @@
             const { dateObj, dayOfWeek, currentSeconds, timeString } = getNowState();
             document.getElementById('live-clock').innerText = timeString;
             document.getElementById('live-date').innerText = `${DAY_NAMES[dayOfWeek]}, ${dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}`;
+
+            // Таймер столовой до 16:25
+            const canteenCloseSec = timeToSeconds("16:25");
+            const canteenTimerEl = document.getElementById('canteen-timer');
+            const canteenLabelEl = document.getElementById('canteen-status-label');
+            if (dayOfWeek === 0 || dayOfWeek === 6 || currentSeconds >= canteenCloseSec) {
+                canteenLabelEl.innerText = "Столовая";
+                canteenTimerEl.innerText = "ЗАКРЫТА";
+                canteenTimerEl.className = "text-lg sm:text-xl font-mono-num font-extrabold text-red-400 tracking-wider mt-0.5";
+            } else {
+                const remCanteen = canteenCloseSec - currentSeconds;
+                canteenLabelEl.innerText = "До закрытия";
+                canteenTimerEl.innerText = formatDuration(remCanteen);
+                canteenTimerEl.className = "text-lg sm:text-xl font-mono-num font-extrabold text-amber-300 tracking-wider mt-0.5";
+            }
 
             const iconBox = document.getElementById('status-icon-box');
             const badge = document.getElementById('status-badge');
