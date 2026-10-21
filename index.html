@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Расписание 7г класса • Облачный чат и Тетрис</title>
+    <title>Расписание 7г класса • Чат и Тетрис</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -12,9 +12,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Fira+Code:wght@500;700&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&family=Montserrat:wght@500;700;900&family=Pacifico&family=Poppins:wght@500;700;900&family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Firebase SDK (Compat) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         :root {
             --accent: #4f46e5;
@@ -485,7 +482,7 @@
                     🔒
                 </div>
                 <h4 class="text-base sm:text-lg font-extrabold mb-1">Введите секретный PIN-код</h4>
-                <p class="text-xs theme-text-muted mb-4">Доступ только для учеников 7г класса</p>
+                <p class="text-xs theme-text-muted mb-4">Доступ только для учеников 7г класса (пин: 107)</p>
                 <div class="w-full max-w-xs space-y-3">
                     <input type="password" id="chat-pin-input" placeholder="PIN-код" class="w-full custom-badge border theme-surface-alt px-4 py-3 text-center text-lg font-mono-num tracking-widest focus:outline-none">
                     <div id="chat-pin-error" class="hidden text-xs font-bold text-red-400">Неверный PIN-код!</div>
@@ -504,7 +501,7 @@
                 </div>
 
                 <div id="chat-messages-container" class="flex-grow overflow-y-auto space-y-3 p-3 theme-surface-alt border custom-box mb-3">
-                    <!-- Сообщения будут подгружаться сюда через Firebase -->
+                    <!-- Сообщения будут подгружаться сюда -->
                 </div>
 
                 <div class="flex gap-2 shrink-0">
@@ -756,31 +753,38 @@
     </footer>
 
     <script>
-        /* --- FIREBASE CONFIG --- */
-        const firebaseConfig = {
-            apiKey: "AIzaSyD-MockKeyFor7GClassScheduleApp12345",
-            authDomain: "class7g-schedule.firebaseapp.com",
-            databaseURL: "https://class7g-schedule-default-rtdb.firebaseio.com",
-            projectId: "class7g-schedule",
-            storageBucket: "class7g-schedule.appspot.com",
-            messagingSenderId: "1234567890",
-            appId: "1:1234567890:web:abcdef"
-        };
-        // Initialize Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.database();
-
-        // Проффилтр мата
-        const BAD_WORDS = ['сука', 'блять', 'блять', 'хуй', 'пизда', 'ебать', 'ебал', 'залупа', 'мразь', 'шлюха', 'сучка', 'гандон', 'чмо', 'урод', 'fuck', 'shit', 'bitch', 'cunt', 'whore', 'asshole'];
+        /* --- НАДЕЖНЫЙ ОБЛАЧНЫЙ И ЛОКАЛЬНЫЙ ЧАТ --- */
+        const BAD_WORDS = ['сука', 'блять', 'хуй', 'пизда', 'ебать', 'ебал', 'залупа', 'мразь', 'шлюха', 'сучка', 'гандон', 'чмо', 'урод', 'fuck', 'shit', 'bitch', 'cunt', 'whore', 'asshole'];
         function containsProfanity(text) {
             const lower = text.toLowerCase();
             return BAD_WORDS.some(word => lower.includes(word));
         }
 
-        let isChatAuthenticated = localStorage.getItem('7g_chat_auth_100x') === 'true';
-        let currentNickname = localStorage.getItem('7g_nickname_100x') || ('Ученик ' + Math.floor(Math.random() * 89 + 10));
+        let isChatAuthenticated = localStorage.getItem('7g_chat_auth_107') === 'true';
+        let currentNickname = localStorage.getItem('7g_nickname_107') || ('Ученик ' + Math.floor(Math.random() * 89 + 10));
+
+        // Инициализация хранилища чата (поддержка localStorage + BroadcastChannel)
+        const chatChannel = new BroadcastChannel('7g_class_chat_channel');
+        
+        function getLocalMessages() {
+            try {
+                return JSON.parse(localStorage.getItem('7g_chat_messages_v2') || '[]');
+            } catch(e) {
+                return [];
+            }
+        }
+
+        function saveLocalMessages(msgs) {
+            try {
+                localStorage.setItem('7g_chat_messages_v2', JSON.stringify(msgs));
+            } catch(e) {}
+        }
+
+        chatChannel.onmessage = (event) => {
+            if (event.data && event.data.type === 'NEW_MESSAGE') {
+                renderChatMessages();
+            }
+        };
 
         function openChatModal() {
             document.getElementById('chat-modal').classList.remove('hidden');
@@ -788,7 +792,7 @@
                 document.getElementById('chat-auth-view').classList.add('hidden');
                 document.getElementById('chat-main-view').classList.remove('hidden');
                 document.getElementById('chat-nickname').value = currentNickname;
-                listenToChatMessages();
+                renderChatMessages();
             } else {
                 document.getElementById('chat-auth-view').classList.remove('hidden');
                 document.getElementById('chat-main-view').classList.add('hidden');
@@ -804,12 +808,12 @@
             const pin = document.getElementById('chat-pin-input').value.trim();
             if (pin === '107') {
                 isChatAuthenticated = true;
-                localStorage.setItem('7g_chat_auth_100x', 'true');
+                localStorage.setItem('7g_chat_auth_107', 'true');
                 document.getElementById('chat-pin-error').classList.add('hidden');
                 document.getElementById('chat-auth-view').classList.add('hidden');
                 document.getElementById('chat-main-view').classList.remove('hidden');
                 document.getElementById('chat-nickname').value = currentNickname;
-                listenToChatMessages();
+                renderChatMessages();
             } else {
                 document.getElementById('chat-pin-error').classList.remove('hidden');
             }
@@ -817,7 +821,7 @@
 
         function updateNickname(val) {
             currentNickname = val.trim() || 'Ученик 7Г';
-            localStorage.setItem('7g_nickname_100x', currentNickname);
+            localStorage.setItem('7g_nickname_107', currentNickname);
         }
 
         function sendChatMessage() {
@@ -831,40 +835,55 @@
             }
 
             const msgData = {
+                id: Date.now() + Math.random(),
                 sender: currentNickname,
                 text: text,
-                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-                timestamp: firebase.database.ServerValue.TIMESTAMP
+                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
             };
 
-            db.ref('messages').push(msgData);
+            const msgs = getLocalMessages();
+            msgs.push(msgData);
+            if (msgs.length > 100) msgs.shift(); // Ограничение истории
+            saveLocalMessages(msgs);
+
+            // Отправляем в другие вкладки/окна на устройстве
+            chatChannel.postMessage({ type: 'NEW_MESSAGE' });
+            
             input.value = '';
+            renderChatMessages();
         }
 
-        function listenToChatMessages() {
+        function renderChatMessages() {
             const container = document.getElementById('chat-messages-container');
-            db.ref('messages').limitToLast(50).on('value', (snapshot) => {
-                container.innerHTML = '';
-                const data = snapshot.val();
-                if (!data) {
-                    container.innerHTML = `<div class="text-center text-xs theme-text-muted py-6">В чате пока нет сообщений. Напишите первыми! 👋</div>`;
-                    return;
-                }
-                Object.values(data).forEach(msg => {
-                    const isMe = msg.sender === currentNickname;
-                    const div = document.createElement('div');
-                    div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
-                    div.innerHTML = `
-                        <div class="text-[10px] font-bold theme-text-muted mb-0.5 px-1">${escapeHtml(msg.sender)} • ${msg.time}</div>
-                        <div class="max-w-[85%] px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-medium ${isMe ? 'accent-bg shadow-sm' : 'theme-surface border'} break-words">
-                            ${escapeHtml(msg.text)}
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-                container.scrollTop = container.scrollHeight;
+            const msgs = getLocalMessages();
+            container.innerHTML = '';
+
+            if (msgs.length === 0) {
+                container.innerHTML = `<div class="text-center text-xs theme-text-muted py-6">В чате пока нет сообщений. Напишите первыми! 👋</div>`;
+                return;
+            }
+
+            msgs.forEach(msg => {
+                const isMe = msg.sender === currentNickname;
+                const div = document.createElement('div');
+                div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+                div.innerHTML = `
+                    <div class="text-[10px] font-bold theme-text-muted mb-0.5 px-1">${escapeHtml(msg.sender)} • ${msg.time}</div>
+                    <div class="max-w-[85%] px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-medium ${isMe ? 'accent-bg shadow-sm' : 'theme-surface border'} break-words">
+                        ${escapeHtml(msg.text)}
+                    </div>
+                `;
+                container.appendChild(div);
             });
+            container.scrollTop = container.scrollHeight;
         }
+
+        // Авто-синхронизация по localStorage для соседних вкладок
+        window.addEventListener('storage', (e) => {
+            if (e.key === '7g_chat_messages_v2') {
+                renderChatMessages();
+            }
+        });
 
         function escapeHtml(text) {
             const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
@@ -891,15 +910,15 @@
         };
 
         let userConfig = {
-            theme: localStorage.getItem('7g_theme_100x') || 'dark',
-            accent: localStorage.getItem('7g_accent_100x') || 'indigo',
-            shape: localStorage.getItem('7g_shape_100x') || 'rounded',
-            font: localStorage.getItem('7g_font_100x') || "'Inter', sans-serif",
-            pattern: localStorage.getItem('7g_pattern_100x') || 'none',
-            opacity: localStorage.getItem('7g_opacity_100x') || '0.65',
-            blur: localStorage.getItem('7g_blur_100x') || '20px',
-            lowPerf: localStorage.getItem('7g_low_perf_100x') === 'true',
-            timerFormat: localStorage.getItem('7g_timer_format_100x') || 'full'
+            theme: localStorage.getItem('7g_theme_107') || 'dark',
+            accent: localStorage.getItem('7g_accent_107') || 'indigo',
+            shape: localStorage.getItem('7g_shape_107') || 'rounded',
+            font: localStorage.getItem('7g_font_107') || "'Inter', sans-serif",
+            pattern: localStorage.getItem('7g_pattern_107') || 'none',
+            opacity: localStorage.getItem('7g_opacity_107') || '0.65',
+            blur: localStorage.getItem('7g_blur_107') || '20px',
+            lowPerf: localStorage.getItem('7g_low_perf_107') === 'true',
+            timerFormat: localStorage.getItem('7g_timer_format_107') || 'full'
         };
 
         const SHAPE_PRESETS = {
@@ -967,15 +986,15 @@
             renderLessonsForSelectedDay(false);
         }
 
-        function setAppTheme(t) { userConfig.theme = t; localStorage.setItem('7g_theme_100x', t); applyCustomizations(); }
-        function setAppAccent(a) { userConfig.accent = a; localStorage.setItem('7g_accent_100x', a); applyCustomizations(); }
-        function setAppShape(s) { userConfig.shape = s; localStorage.setItem('7g_shape_100x', s); applyCustomizations(); }
-        function setAppFont(f) { userConfig.font = f; localStorage.setItem('7g_font_100x', f); applyCustomizations(); }
-        function setAppPattern(p) { userConfig.pattern = p; localStorage.setItem('7g_pattern_100x', p); applyCustomizations(); }
-        function setTimerFormat(tf) { userConfig.timerFormat = tf; localStorage.setItem('7g_timer_format_100x', tf); applyCustomizations(); }
-        function setAppOpacity(o) { userConfig.opacity = o; localStorage.setItem('7g_opacity_100x', o); document.getElementById('opacity-val').innerText = o; applyCustomizations(); }
-        function setAppBlur(b) { userConfig.blur = b + 'px'; localStorage.setItem('7g_blur_100x', userConfig.blur); document.getElementById('blur-val').innerText = userConfig.blur; applyCustomizations(); }
-        function toggleLowPerf(checked) { userConfig.lowPerf = checked; localStorage.setItem('7g_low_perf_100x', checked ? 'true' : 'false'); applyCustomizations(); }
+        function setAppTheme(t) { userConfig.theme = t; localStorage.setItem('7g_theme_107', t); applyCustomizations(); }
+        function setAppAccent(a) { userConfig.accent = a; localStorage.setItem('7g_accent_107', a); applyCustomizations(); }
+        function setAppShape(s) { userConfig.shape = s; localStorage.setItem('7g_shape_107', s); applyCustomizations(); }
+        function setAppFont(f) { userConfig.font = f; localStorage.setItem('7g_font_107', f); applyCustomizations(); }
+        function setAppPattern(p) { userConfig.pattern = p; localStorage.setItem('7g_pattern_107', p); applyCustomizations(); }
+        function setTimerFormat(tf) { userConfig.timerFormat = tf; localStorage.setItem('7g_timer_format_107', tf); applyCustomizations(); }
+        function setAppOpacity(o) { userConfig.opacity = o; localStorage.setItem('7g_opacity_107', o); document.getElementById('opacity-val').innerText = o; applyCustomizations(); }
+        function setAppBlur(b) { userConfig.blur = b + 'px'; localStorage.setItem('7g_blur_107', userConfig.blur); document.getElementById('blur-val').innerText = userConfig.blur; applyCustomizations(); }
+        function toggleLowPerf(checked) { userConfig.lowPerf = checked; localStorage.setItem('7g_low_perf_107', checked ? 'true' : 'false'); applyCustomizations(); }
 
         function resetCustomizations() {
             userConfig = { theme: 'dark', accent: 'indigo', shape: 'rounded', font: "'Inter', sans-serif", pattern: 'none', opacity: '0.65', blur: '20px', lowPerf: false, timerFormat: 'full' };
@@ -1199,7 +1218,7 @@
         };
 
         const DAY_NAMES = { 1: "Понедельник", 2: "Вторник", 3: "Среда", 4: "Четверг", 5: "Пятница", 6: "Суббота", 0: "Воскресенье" };
-        let thursdayMode = localStorage.getItem('schedule_7g_thu_mode_100x') || 'start1310';
+        let thursdayMode = localStorage.getItem('schedule_7g_thu_mode_107') || 'start1310';
 
         const SCHEDULE_DATA = {
             1: [
@@ -1261,7 +1280,7 @@
 
         function setThursdayMode(mode) {
             thursdayMode = mode;
-            localStorage.setItem('schedule_7g_thu_mode_100x', mode);
+            localStorage.setItem('schedule_7g_thu_mode_107', mode);
             renderLessonsForSelectedDay(true);
             updateLiveTimer();
         }
