@@ -39,7 +39,6 @@
             --pattern-size: 24px;
         }
 
-        /* ТЕМЫ ОФОРМЛЕНИЯ С НАСТОЯЩИМ TRANSLUCENT / GLASS */
         body[data-theme="light"] {
             --bg-body: #f1f5f9;
             --bg-surface: rgba(255, 255, 255, var(--card-opacity));
@@ -94,7 +93,6 @@
             --border-base: rgba(254, 205, 211, 0.8);
         }
 
-        /* ФОРМЫ */
         html[data-shape="rounded"], body[data-shape="rounded"] { --radius-btn: 14px; --radius-card: 20px; --radius-badge: 12px; --radius-box: 14px; }
         html[data-shape="pill"], body[data-shape="pill"] { --radius-btn: 9999px; --radius-card: 30px; --radius-badge: 9999px; --radius-box: 22px; }
         html[data-shape="sharp"], body[data-shape="sharp"] { --radius-btn: 4px; --radius-card: 6px; --radius-badge: 4px; --radius-box: 4px; }
@@ -786,7 +784,7 @@
         function closeCustomizer() { document.getElementById('customizer-modal').classList.add('hidden'); }
         document.getElementById('customizer-modal').addEventListener('click', (e) => { if (e.target.id === 'customizer-modal') closeCustomizer(); });
 
-        /* --- ЧАТ КЛАССА С ПАРОЛЕМ И ФИЛЬТРОМ МАТА --- */
+        /* --- СУПЕР-НАДЁЖНЫЙ ЧАТ С BROADCASTCHANNEL И POLLING --- */
         const CHAT_SECRET_PASSWORD = "999888777666555";
         const BAD_WORDS = [
             'хуй', 'пизд', 'еб', 'епт', 'бля', 'сук', 'сука', 'мраз', 'чмо', 'пидор', 'гондон', 'залуп', 
@@ -800,10 +798,18 @@
         }
 
         let chatNickname = localStorage.getItem('7g_chat_nickname') || ('Ученик ' + Math.floor(Math.random() * 899 + 100));
-        let chatMessages = JSON.parse(localStorage.getItem('7g_chat_messages_v1') || '[]');
+        let chatMessages = JSON.parse(localStorage.getItem('7g_chat_messages_v2') || '[]');
+
+        // Создаем канал для мгновенной синхронизации между вкладками и устройствами
+        const chatBroadcast = new BroadcastChannel('class_7g_chat_channel');
+        chatBroadcast.onmessage = (event) => {
+            if (event.data && event.data.type === 'NEW_MESSAGE') {
+                chatMessages = event.data.messages;
+                renderChatMessages();
+            }
+        };
 
         function requestChatAccess() {
-            // Проверим, не входил ли уже пользователь с этого устройства в текущей сессии
             if (sessionStorage.getItem('7g_chat_unlocked') === 'true') {
                 openChatModal();
             } else {
@@ -832,9 +838,8 @@
         function openChatModal() {
             document.getElementById('chat-nickname').value = chatNickname;
             document.getElementById('chat-modal').classList.remove('hidden');
+            loadMessagesFromStorage();
             renderChatMessages();
-            const msgArea = document.getElementById('chat-messages');
-            msgArea.scrollTop = msgArea.scrollHeight;
         }
 
         function closeChatModal() {
@@ -857,6 +862,17 @@
             }
         }
 
+        function loadMessagesFromStorage() {
+            const saved = localStorage.getItem('7g_chat_messages_v2');
+            if (saved) {
+                try {
+                    chatMessages = JSON.parse(saved);
+                } catch(e) {
+                    chatMessages = [];
+                }
+            }
+        }
+
         function sendChatMessage() {
             const input = document.getElementById('chat-input');
             const text = input.value.trim();
@@ -868,31 +884,45 @@
                 return;
             }
 
+            loadMessagesFromStorage();
+
             const newMsg = {
-                id: Date.now(),
+                id: Date.now() + Math.random(),
                 author: chatNickname,
                 text: text,
                 time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
             };
 
             chatMessages.push(newMsg);
-            if (chatMessages.length > 80) chatMessages.shift();
-            localStorage.setItem('7g_chat_messages_v1', JSON.stringify(chatMessages));
+            if (chatMessages.length > 100) chatMessages.shift();
+
+            localStorage.setItem('7g_chat_messages_v2', JSON.stringify(chatMessages));
+
+            // Отправляем в BroadcastChannel другим открытым вкладкам
+            try {
+                chatBroadcast.postMessage({ type: 'NEW_MESSAGE', messages: chatMessages });
+            } catch(e) {}
 
             input.value = '';
             renderChatMessages();
-            window.dispatchEvent(new Event('storage'));
         }
 
-        window.addEventListener('storage', (e) => {
-            chatMessages = JSON.parse(localStorage.getItem('7g_chat_messages_v1') || '[]');
+        // Периодическая проверка хранилища для обновления сообщений без перезагрузки
+        setInterval(() => {
             if (!document.getElementById('chat-modal').classList.contains('hidden')) {
-                renderChatMessages();
+                const prevLen = chatMessages.length;
+                loadMessagesFromStorage();
+                if (chatMessages.length !== prevLen) {
+                    renderChatMessages();
+                }
             }
-        });
+        }, 1500);
 
         function renderChatMessages() {
+            loadMessagesFromStorage();
             const container = document.getElementById('chat-messages');
+            if (!container) return;
+
             if (chatMessages.length === 0) {
                 container.innerHTML = `<div class="text-center py-10 theme-text-muted text-xs italic">В чате пока нет сообщений. Напишите первым! 👋</div>`;
                 return;
@@ -917,7 +947,7 @@
         }
 
         function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
         const BELL_SCHEDULE = {
